@@ -1,0 +1,308 @@
+/* Aya's programs: B.Sc. Microbiology and Chemistry (Alexandria University, GPA 3.5).
+   Biology, quality, environment, food. MOI letter instead of IELTS, free tuition or scholarship.
+   Last checked: October 2026. Amounts marked est:true are estimates. */
+
+const SH_STIPEND = { total: 1048800, text: "You get a stipend of HUF 43,700 per month (12 months a year), plus a free dorm place or HUF 40,000 per month for housing, and health insurance." };
+const SH_DEADLINE = { t: "Stipendium Hungaricum 2027/28: portal expected to open mid November 2026, deadline about 15 Jan 2027 (Egypt's nominating office may set an earlier date)", d: "2027-01-15" };
+const SH_OTHER = [["Visa / residence permit (est.)", 25000, true], ["Flight Cairo to Hungary", 120000, true], ["First month setup", 80000, true]];
+const SH_LIVING = { perMonth: 120000, months: 24, est: true, note: "Debrecen estimate for food, transport and phone with the free dorm. Debrecen is cheaper than Budapest." };
+const SH_BRING = [["Visa / residence permit", 25000, true], ["Flight", 120000, true], ["Setup money", 80000, true], ["Top-up for the first 3 months (living minus stipend)", 230000, true]];
+const SH_APPLY = "Stipendium Hungaricum online portal (choose the University of Debrecen program) + nomination by Egypt's Cultural and Missions Sector (Ministry of Higher Education)";
+const DEB_RANK = { world: "801 to 1000", country: "About 3rd to 4th in Hungary (THE 2026 list)", sort: 801 };
+const DEB_ENG = { s: "yes", t: "MOI accepted: the University of Debrecen lists a 'Certificate on English medium of instruction' as valid B2 proof. No IELTS needed." };
+
+const PROGRAMS_AYA = [
+  /* ============================ HUNGARY ============================ */
+  {
+    id: "deb-bio", rank: DEB_RANK, sec: "hu", country: "Hungary", flag: "🇭🇺",
+    uni: "University of Debrecen (Stipendium Hungaricum)", prog: "M.Sc. Biology",
+    city: "Debrecen", field: ["Biology"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
+    intake: "September",
+    deadlines: [SH_DEADLINE],
+    applyVia: SH_APPLY,
+    eng: DEB_ENG,
+    german: "",
+    academic: "Bachelor in biological / life sciences or a related natural science. Motivation letter. Online oral interview with a professor (motivation, English, subject knowledge).",
+    chance: "High", rankAll: 1, rankSec: 1,
+    why: "The closest match to a Microbiology and Chemistry degree, fully funded by the Hungarian government, and the university clearly accepts an MOI certificate. Egypt is an official partner country for master's in any field.",
+    watch: "Prepare for the online interview (your graduation project on Trichoderma and biofertilizers is a good topic). The stipend is small, so plan a little monthly top-up.",
+    link: "https://apply.stipendiumhungaricum.hu/courses/course/1694",
+    cur: "HUF", tuitionFree: true,
+    tuitionLine: "You don't pay anything for the university. Tuition is free with Stipendium Hungaricum, plus a free dorm (or housing money) and health insurance.",
+    uniLines: [["Application fee", 0]],
+    other: SH_OTHER, living: SH_LIVING, stipend: SH_STIPEND, blocked: null, bring: SH_BRING,
+    docs: [
+      "Stipendium Hungaricum online application (Debrecen, M.Sc. Biology)",
+      "Nomination from Egypt's Cultural and Missions Sector",
+      "MOI certificate from the Faculty of Science",
+      "Degree certificate and transcript in English",
+      "Motivation letter",
+      "Recommendation letter(s)",
+      "Medical certificate",
+      "Passport copy",
+      "Prepare for the online interview",
+    ],
+  },
+  {
+    id: "deb-pharma", rank: DEB_RANK, sec: "hu", country: "Hungary", flag: "🇭🇺",
+    uni: "University of Debrecen, Faculty of Pharmacy", prog: "M.Sc. Pharmaceutical Research and Development Manager (quality assurance, GxP, regulatory)",
+    city: "Debrecen", field: ["Quality", "Biology"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
+    intake: "September",
+    deadlines: [SH_DEADLINE, { t: "Self-funded route: 15 Jun 2027", d: "2027-06-15" }],
+    applyVia: "Stipendium Hungaricum portal if the program is listed for 2027/28, otherwise directly to the University of Debrecen (self-funded)",
+    eng: { s: "yes", t: "MOI accepted: 'an English medium-of-instruction certificate is accepted for applicants who completed secondary or higher education in English'." },
+    german: "",
+    academic: "Relevant BSc in Natural Sciences, Medical and Health Sciences, Food Sciences or Health Management (Biology and Chemistry are named). Entrance interview on motivation, personal skills and English.",
+    chance: "Medium to High", rankAll: 2, rankSec: 2,
+    why: "The best match for a quality career: quality assurance (GxP) and regulatory work in the pharma industry, and it accepts Biology and Chemistry graduates. Builds directly on your ISO 9001 and internal audit training.",
+    watch: "Check that it appears in the Stipendium Hungaricum course list when the portal opens in November. Self-funded it costs USD 6,000 per year plus USD 500 in fees, which is not low cost.",
+    link: "https://edu.unideb.hu/p/pharmaceutical-research-and-development-manager-msc",
+    cur: "HUF", tuitionFree: true,
+    tuitionLine: "With Stipendium Hungaricum you don't pay anything for the university. Without it (self-funded) tuition is USD 6,000 per year plus a USD 150 application fee and USD 350 entrance fee.",
+    uniLines: [["Application fee (scholarship route)", 0]],
+    other: SH_OTHER, living: SH_LIVING, stipend: SH_STIPEND, blocked: null, bring: SH_BRING,
+    docs: [
+      "Check it is in the Stipendium Hungaricum course list (November)",
+      "MOI certificate from the Faculty of Science",
+      "Degree certificate and transcript in English",
+      "Motivation letter focused on quality and regulatory work",
+      "CV highlighting ISO 9001, internal audit and VOIS quality work",
+      "Nomination from Egypt's Cultural and Missions Sector",
+      "Prepare for the entrance interview",
+    ],
+  },
+  {
+    id: "deb-env", rank: DEB_RANK, sec: "hu", country: "Hungary", flag: "🇭🇺",
+    uni: "University of Debrecen (Stipendium Hungaricum)", prog: "M.Sc. Environmental Science",
+    city: "Debrecen", field: ["Environment"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
+    intake: "September",
+    deadlines: [SH_DEADLINE],
+    applyVia: SH_APPLY,
+    eng: DEB_ENG,
+    german: "",
+    academic: "BSc in biology, environmental sciences or a related natural science, with strong biology and environmental knowledge. Motivation letter and online interview.",
+    chance: "Medium to High", rankAll: 3, rankSec: 3,
+    why: "Fits your environmental startup work (Aqua Dialogue EU 2nd place, Climathon) and your biofertilizer project. Fully funded.",
+    watch: "Ask the admissions officer (fonai.lilla@edu.unideb.hu) to confirm a Microbiology and Chemistry degree counts as 'related natural science'.",
+    link: "https://apply.stipendiumhungaricum.hu/courses/course/1697",
+    cur: "HUF", tuitionFree: true,
+    tuitionLine: "You don't pay anything for the university. Tuition is free with Stipendium Hungaricum, plus a dorm and health insurance.",
+    uniLines: [["Application fee", 0]],
+    other: SH_OTHER, living: SH_LIVING, stipend: SH_STIPEND, blocked: null, bring: SH_BRING,
+    docs: ["Stipendium Hungaricum online application", "Nomination from Egypt's Cultural and Missions Sector", "MOI certificate", "Degree certificate and transcript in English", "Motivation letter (environment focus)", "Medical certificate", "Email fonai.lilla@edu.unideb.hu to confirm eligibility"],
+  },
+  {
+    id: "deb-food", rank: DEB_RANK, sec: "hu", country: "Hungary", flag: "🇭🇺",
+    uni: "University of Debrecen (Stipendium Hungaricum)", prog: "M.Sc. Food Safety and Quality Engineering",
+    city: "Debrecen", field: ["Quality", "Food"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
+    intake: "September",
+    deadlines: [SH_DEADLINE],
+    applyVia: SH_APPLY,
+    eng: DEB_ENG,
+    german: "",
+    academic: "Bachelor in the field of Food Sciences. Motivation letter and online interview.",
+    chance: "Medium", rankAll: 6, rankSec: 4,
+    why: "Food quality and safety management: a direct quality-control career path, and microbiology is central to food safety.",
+    watch: "The page asks for a Food Sciences bachelor. Email fonai.lilla@edu.unideb.hu and ask whether Microbiology and Chemistry is accepted before choosing it.",
+    link: "https://apply.stipendiumhungaricum.hu/courses/course/972",
+    cur: "HUF", tuitionFree: true,
+    tuitionLine: "You don't pay anything for the university. Tuition is free with Stipendium Hungaricum, plus a dorm and health insurance.",
+    uniLines: [["Application fee", 0]],
+    other: SH_OTHER, living: SH_LIVING, stipend: SH_STIPEND, blocked: null, bring: SH_BRING,
+    docs: ["Email to confirm a Microbiology and Chemistry degree is accepted", "Stipendium Hungaricum online application", "MOI certificate", "Degree certificate and transcript in English", "Motivation letter (food quality focus)", "Medical certificate"],
+  },
+
+  /* ============================ EUROPE ============================ */
+  {
+    id: "bremen-eco", rank: { world: "351 to 375", country: "=33 of 55 in Germany", sort: 351 }, sec: "eu", country: "Germany", flag: "🇩🇪", direct: true,
+    uni: "University of Bremen", prog: "M.Sc. Ecology",
+    city: "Bremen", field: ["Environment", "Biology"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
+    intake: "October (winter semester only)",
+    deadlines: [{ t: "Winter 2027/28: online form opens about mid March, deadline 30 Apr 2027", d: "2027-04-30" }],
+    applyVia: "Directly on the University of Bremen's MOIN portal. No uni-assist.",
+    eng: { s: "yes", t: "C1 proof is only required if your last studies were 'not completely taught in English', so an MOI letter from Alexandria University saying the whole B.Sc. was in English should exempt you. Confirm by email." },
+    german: "Not required. Your A2 German helps with daily life.",
+    academic: "B.Sc. in biology, ecology, environmental sciences or a closely related field, with at least 3 credit points in Ecology. 25 places, ranked: grade up to 50 points, ecology courses or experience up to 30, one-page motivation letter up to 20.",
+    chance: "Medium", rankAll: 4, rankSec: 1,
+    why: "Free public university in Germany, you apply directly, and an English-taught degree counts as English proof. Strong environmental focus.",
+    watch: "Only 25 places. Check your transcript for an ecology (or environmental microbiology) course worth 3 credit points. Germany needs a blocked account.",
+    link: "https://www.uni-bremen.de/en/mscecology/application-and-admission",
+    cur: "EUR", tuitionFree: true,
+    tuitionLine: "No tuition. You only pay the semester fee of about EUR 425 every 6 months (includes a transport ticket).",
+    uniLines: [["Application fee", 0], ["Semester fee x 4 (about EUR 425 each)", 1700]],
+    other: deOther([["Courier for documents (if requested)", 50, true]]),
+    living: deLiving(24), stipend: null, blocked: DE_BLOCKED,
+    bring: deBring([], 425),
+    docs: ["MOIN online application", "MOI letter: whole B.Sc. taught and examined in English", "Transcript showing at least 3 credit points in Ecology", "One-page motivation letter in English", "CV", "Degree certificate in English", "Email the program to confirm the MOI exemption"],
+  },
+  {
+    id: "iyt-aya", rank: { world: null, country: "Depends on the Italian university you choose", sort: null }, sec: "eu", country: "Italy", flag: "🇮🇹",
+    uni: "Invest Your Talent in Italy", prog: "English-taught master's from the program list (food, environment, quality or management)",
+    city: "Partner universities in Italy", field: ["Food", "Environment", "Quality", "Business"], degree: "Master's (taught)", duration: "2 years",
+    intake: "September",
+    deadlines: [{ t: "Expected about Apr to May 2027 (last call: 20 Apr to 11 May 2026)", d: "2027-05-11" }],
+    applyVia: "Invest Your Talent online call (Italian Foreign Ministry), after applying to the chosen university",
+    eng: { s: "yes", t: "MOI accepted: the official call accepts a university certificate confirming English was the language of instruction. Egypt is an eligible country." },
+    german: "",
+    academic: "Bachelor in a related field; the course must be on the scholarship's program list.",
+    chance: "Medium", rankAll: 5, rankSec: 2,
+    why: "Good stipend for Italy, tuition waived, and MOI officially accepted. Wide choice of fields including food science, environment and management.",
+    watch: "The scholarship covers 9 months of the first year. Plan money for the second year, or apply for the regional student grant (DSU) in Italy.",
+    link: "https://investyourtalent.esteri.it/SitoIYT/EN/pdf/CALL_IYT_ENGLISH_2026.pdf",
+    cur: "EUR", tuitionFree: true,
+    tuitionLine: "You don't pay anything for the university tuition (fees waived). Only a small regional tax may remain.",
+    uniLines: [["Regional tax x 2 years (est.)", 280]],
+    other: [["Italian study visa", 50, false], ["Flight Cairo to Italy", 300, true], ["First month setup (deposit)", 1000, true]],
+    living: { perMonth: 950, months: 24, est: true, note: "Italian university city estimate." },
+    stipend: { total: 10800, perYear: 10800, text: "You get EUR 10,800 for 9 months (first year)." },
+    blocked: null,
+    bring: [["Visa", 50, false], ["Flight", 300, true], ["Deposit and setup", 1000, true], ["Proof of funds for the visa (est.)", 5000, true]],
+    docs: ["Pick an English master's on the IYT list (food, environment, quality, management)", "Apply to that university", "IYT online application", "MOI certificate", "Motivation letter", "Recommendation letters", "CV"],
+  },
+  {
+    id: "me3-4s", rank: { world: null, country: "Consortium led by IMT Atlantique (France)", sort: null }, sec: "eu", country: "Europe (several countries)", flag: "🇪🇺",
+    uni: "Erasmus Mundus ME3-4S", prog: "Management and Engineering of Environment and Energy for a Sustainable Future",
+    city: "France and partner countries", field: ["Environment", "Business"], degree: "Erasmus Mundus joint master's", duration: "2 years",
+    intake: "September 2027 (first intake)",
+    deadlines: [{ t: "New website expected November 2026. Erasmus Mundus deadlines are usually December to January", d: null }],
+    applyVia: "ME3-4S online application (website expected November 2026)",
+    eng: { s: "check", t: "The previous version (ME3+) accepted 'medium of instruction in English, attested by the university' at B2 level. Confirm the same rule for ME3-4S when the website opens." },
+    german: "",
+    academic: "To be published on the new website. The previous version was for science, engineering and management backgrounds in environment and energy.",
+    chance: "Check", rankAll: 7, rankSec: 3,
+    why: "Fully funded Erasmus Mundus scholarship (EUR 1,400 per month + tuition covered) and an environment and management focus that matches your startup and quality experience.",
+    watch: "Brand new program: eligibility for a Microbiology and Chemistry degree is not yet confirmed. Very competitive.",
+    link: "https://www.imt-atlantique.fr/en/study/masters/emjmd/me3plus/apply",
+    cur: "EUR", tuitionFree: true,
+    tuitionLine: "With the Erasmus Mundus scholarship you don't pay anything for the university (participation costs covered).",
+    uniLines: [],
+    other: [["Visas (est.)", 150, true], ["Flight", 350, true], ["First month setup", 1000, true]],
+    living: { perMonth: 1100, months: 24, est: true, note: "Average across European partner cities." },
+    stipend: { total: 33600, text: "You get the Erasmus Mundus scholarship of EUR 1,400 per month for 24 months (if selected for it)." },
+    blocked: null,
+    bring: [["Visas", 150, true], ["Flight", 350, true], ["Setup money until the first payment", 1000, true]],
+    docs: ["Check the ME3-4S website in November", "MOI certificate attested by the university", "Motivation letter", "2 recommendation letters", "Europass CV", "Degree and transcript in English"],
+  },
+
+  /* ============================ ASIA ============================ */
+  {
+    id: "csc-aya", rank: { world: "=191", country: "15 in China", sort: 191 }, sec: "asia", country: "China", flag: "🇨🇳",
+    uni: "Chinese Government Scholarship (CSC), e.g. HUST", prog: "English-taught master's in environmental science, biology or food science",
+    city: "Wuhan (or another CSC university)", field: ["Environment", "Biology", "Food"], degree: "Master's", duration: "2 to 3 years",
+    intake: "September",
+    deadlines: [{ t: "Expected Nov 2026 to about 28 Feb 2027", d: "2027-02-28" }],
+    applyVia: "CSC online system + the university's own application",
+    eng: { s: "yes", t: "MOI accepted at HUST: English is met if the previous degree was taught in English. Other universities have their own rules." },
+    german: "",
+    academic: "Related bachelor, study plan, 2 recommendation letters, physical examination form.",
+    chance: "Medium to High", rankAll: 8, rankSec: 1,
+    why: "Full scholarship: tuition, dorm, insurance and a monthly stipend.",
+    watch: "Choose a program fully taught in English and check that university's English rule.",
+    link: "https://iso.hust.edu.cn/Scholarships/Chinese_University_Program_CUP_.htm",
+    cur: "CNY", tuitionFree: true,
+    tuitionLine: "You don't pay anything for the university. Tuition, dorm and health insurance are covered.",
+    uniLines: [["Application fee (check portal)", 600]],
+    other: [["Visa (est.)", 300, true], ["Flight Cairo to Wuhan", 5000, true], ["First month setup", 2000, true]],
+    living: { perMonth: 2000, months: 24, est: true, note: "Food, phone and transport; dorm is free." },
+    stipend: { total: 72000, text: "You get a monthly stipend of about CNY 3,000 (master's level)." },
+    blocked: null,
+    bring: [["Application fee", 600, true], ["Visa", 300, true], ["Flight", 5000, true], ["Setup money", 2000, true]],
+    docs: ["CSC online application", "University online application", "Study plan / research proposal", "2 recommendation letters", "Foreigner physical examination form", "MOI letter", "Notarized degree and transcript"],
+  },
+];
+
+const NEEDS_TEST_AYA = [
+  { sec: "eu", name: "MarMic Marine Microbiology (Bremen, Max Planck)", money: "No tuition (semester fee EUR 390), scholarships possible after acceptance", rule: "C1 certificate required (e.g. Cambridge C1 Advanced).", deadline: "7 Dec 2026 to 28 Feb 2027", link: "https://www2.daad.de/deutschland/studienangebote/international-programmes/en/detail/3874/" },
+  { sec: "eu", name: "Erasmus Mundus IDOH (Infectious Diseases and One Health)", money: "EUR 1,400 per month + tuition covered", rule: "English requirements not yet published; check for MOI.", deadline: "1 Dec 2026 to 31 Jan 2027", link: "https://www.infectious-diseases-one-health.eu/how-to-apply-1/" },
+  { sec: "eu", name: "Erasmus Mundus Bioceb (biotech and bioeconomy)", money: "EUR 1,400 per month + tuition covered", rule: "IELTS 6.5 / TOEFL 92; MOI only for EU or English-speaking countries.", deadline: "Late January (last: 29 Jan 2026)", link: "" },
+  { sec: "eu", name: "Erasmus Mundus PlantHealth", money: "Erasmus Mundus scholarship", rule: "Official B2 certificate preferred (an EMOI letter is mentioned as an alternative); agronomy background expected.", deadline: "1 Oct to 31 Dec", link: "https://planthealth.upv.es/web/apply/faq/" },
+  { sec: "eu", name: "TH Köln, Natural Resources Management and Development", money: "No tuition; DAAD scholarships possible", rule: "Only listed English certificates accepted.", deadline: "Check", link: "https://th-koeln.de/en/academics/natural-resources-management-and-development-masters-program_10753.php" },
+  { sec: "hu", name: "University of Szeged, Biology M.Sc. (Molecular, Immuno- and Microbiology)", money: "Stipendium Hungaricum (free tuition + stipend)", rule: "B2 test (IELTS 5.5 / TOEFL 72) unless from a listed native English country.", deadline: "About 15 Jan 2027 (SH)", link: "https://sci.u-szeged.hu/english/graduate-programs/biology-msc" },
+  { sec: "asia", name: "KAUST (Saudi Arabia), MS Bioscience or Environmental Science", money: "Full tuition, free housing, stipend, insurance", rule: "Test needed, but you can apply first and send the score later.", deadline: "1 Dec 2026, 15 Jan, 15 Mar 2027", link: "https://admissions.kaust.edu.sa/info-and-contact/faqs" },
+];
+
+const CHECKLIST_AYA = [
+  { group: "Papers from Alexandria University", icon: "🎓", items: [
+    ["moi", "MOI letter from the Faculty of Science: whole B.Sc. Microbiology and Chemistry (2021 to 2025) taught and examined in English, signed and stamped", "Everyone"],
+    ["degree", "Degree certificate in English", "Everyone"],
+    ["transcript", "Transcript in English with the grading scale (GPA 3.5, Excellent with Honor)", "Everyone"],
+    ["courses", "Course descriptions (biology, ecology, chemistry credits)", "Bremen, Debrecen"],
+    ["notarized", "Notarized / certified copies of degree and transcript", "China, Hungary"],
+  ]},
+  { group: "Letters", icon: "✉️", items: [
+    ["rec1", "Recommendation letter 1: graduation project supervisor (Trichoderma project)", "Everyone"],
+    ["rec2", "Recommendation letter 2: a professor or your manager at VOIS", "Everyone"],
+    ["motiv-hu", "Motivation letter for Debrecen (one per program)", "Hungary"],
+    ["motiv-bremen", "One-page motivation letter for Bremen Ecology", "Bremen"],
+    ["studyplan", "Study plan / research proposal", "China"],
+    ["motiv-em", "Motivation letter for Erasmus Mundus", "ME3-4S, Italy"],
+  ]},
+  { group: "Your profile", icon: "🧾", items: [
+    ["cv", "CV in Europass style (ISO 9001, internal audit, VOIS, Aqua Dialogue, Climathon)", "Everyone"],
+    ["passport", "Passport valid for the whole study period", "Everyone"],
+    ["photos", "Biometric photos", "Visa"],
+    ["interview", "Interview practice: why this master's, your graduation project, your quality work", "Debrecen"],
+  ]},
+  { group: "Forms and portals", icon: "🖥️", items: [
+    ["sh-account", "Stipendium Hungaricum portal account (opens mid November)", "Hungary"],
+    ["nomination", "Nomination from Egypt's Cultural and Missions Sector (eman.eid@cdm.edu.eg)", "Hungary"],
+    ["medical", "Medical certificate / physical examination form", "Hungary, China"],
+    ["moin", "University of Bremen MOIN account", "Bremen"],
+    ["iyt", "Invest Your Talent application (spring 2027)", "Italy"],
+    ["csc", "CSC online application", "China"],
+  ]},
+  { group: "Money and visa (after admission)", icon: "💶", items: [
+    ["blocked", "German blocked account (EUR 11,904), only if you choose Bremen", "Germany"],
+    ["proof-funds", "Bank statement for proof of funds", "Italy, Germany"],
+    ["insurance", "Health insurance", "Germany, Italy"],
+    ["visa-appt", "Book the visa appointment", "Everyone"],
+    ["flight", "Book the flight", "Everyone"],
+  ]},
+];
+
+const AYA_TIPS = `
+        <div class="card"><h3>Recommendation letters</h3><ul class="list-plain small"><li>Ask your graduation project supervisor first: they know your lab work.</li><li>A second letter from a professor, or from your manager at VOIS for the quality programs.</li><li>Give them your CV, transcript, the program list and deadlines.</li></ul></div>
+        <div class="card"><h3>Motivation letter</h3><ul class="list-plain small"><li>One page. Start with why this field: quality and food safety, environment, or biology.</li><li>Use your real examples: ISO 9001 and internal audit training, root-cause analysis at VOIS, the Trichoderma biofertilizer project, Aqua Dialogue (EU, 2nd place), Climathon.</li><li>End with your plan after the degree.</li></ul></div>
+        <div class="card"><h3>Debrecen interview</h3><ul class="list-plain small"><li>It is online with a professor: motivation, English and subject knowledge.</li><li>Prepare 2 minutes on your graduation project and 2 minutes on your quality work.</li><li>Review basic microbiology and chemistry terms in English.</li></ul></div>
+        <div class="card"><h3>Your current AASTMT master's</h3><ul class="list-plain small"><li>Mention it in your CV and letters: it shows commitment to quality management.</li><li>You only need your Egyptian bachelor to apply. No equivalency is required by these programs.</li></ul></div>
+`;
+
+const AYA_MONEY = `
+        <div class="card"><h3>🇭🇺 Hungary (Stipendium Hungaricum)</h3><ul class="list-plain small">
+          <li><b>Tuition: free.</b> Plus a free dorm place (or HUF 40,000 per month) and health insurance.</li>
+          <li><b>Stipend: HUF 43,700 per month</b>, 12 months a year. It is small, so bring some money for monthly top-ups.</li>
+          <li>Egypt nominates applicants through the Cultural and Missions Sector of the Ministry of Higher Education.</li></ul></div>
+        <div class="card"><h3>🇩🇪 Germany (Bremen)</h3><ul class="list-plain small">
+          <li><b>No tuition.</b> Semester fee about EUR 425.</li>
+          <li><b>Blocked account: EUR 11,904</b> (EUR 992 x 12 months), paid back to you monthly in Germany.</li>
+          <li>You can work up to 20 hours a week.</li></ul></div>
+        <div class="card"><h3>🇮🇹 Italy and 🇪🇺 Erasmus Mundus</h3><ul class="list-plain small">
+          <li><b>Invest Your Talent:</b> EUR 10,800 for 9 months + fees waived.</li>
+          <li><b>Erasmus Mundus:</b> EUR 1,400 per month for up to 24 months + tuition covered.</li>
+          <li>Italian regions also give income-based student grants (DSU).</li></ul></div>
+        <div class="card"><h3>🇨🇳 China</h3><ul class="list-plain small">
+          <li>Everything covered (tuition, dorm, insurance) + about CNY 3,000 per month.</li></ul></div>
+`;
+
+const DATASETS = {
+  main: {
+    programs: PROGRAMS, sections: SECTIONS, needsTest: NEEDS_TEST, excluded: DE_EXCLUDED, checklist: CHECKLIST,
+    fields: ["AI", "CS", "Data"],
+    lead: "AI first, then CS and Data Science. Only programs that accept an English-taught degree (MOI letter) instead of IELTS, and are either almost free or fully funded.",
+    bestNote: "How it is ranked: 1) chance of admission with a 3.76 GPA (Mayar's profile), 2) money: free tuition or a stipend, 3) AI fit, 4) how soon you can start.",
+    tips: MAIN_TIPS, moneyCards: MAIN_MONEY,
+  },
+  aya: {
+    programs: PROGRAMS_AYA,
+    sections: {
+      hu: { name: "Hungary", sub: "Stipendium Hungaricum: free tuition, stipend and dorm. MOI certificate accepted", icon: "🇭🇺" },
+      eu: { name: "Europe", sub: "Germany (no tuition), Italy and Erasmus Mundus scholarships", icon: "🇪🇺" },
+      asia: { name: "Asia", sub: "Chinese Government Scholarship", icon: "🌏" },
+    },
+    needsTest: NEEDS_TEST_AYA, excluded: [], checklist: CHECKLIST_AYA,
+    fields: ["Biology", "Quality", "Environment", "Food", "Business"],
+    lead: "B.Sc. Microbiology and Chemistry (Alexandria University, GPA 3.5). Biology, quality, environment and food programs that accept the Egyptian bachelor and an English-taught degree (MOI letter) instead of IELTS, with free tuition or a scholarship.",
+    bestNote: "How it is ranked: 1) fits a B.Sc. in Microbiology and Chemistry, 2) MOI letter clearly accepted, 3) free tuition and a stipend, 4) quality, environment or biology focus.",
+    tips: AYA_TIPS, moneyCards: AYA_MONEY,
+  },
+};

@@ -21,6 +21,13 @@
   const loadRates = () => { rates = Object.assign({}, RATES_DEFAULT, store.get("rates", {})); };
   if (profile) loadRates();
   const prof = () => PROFILES.find((p) => p.id === profile);
+  /* each profile reads its own program list (dataset) */
+  let DS, PROGRAMS, SECTIONS, NEEDS_TEST, DE_EXCLUDED, CHECKLIST;
+  function useDataset() {
+    DS = DATASETS[(prof() && prof().data) || "main"];
+    PROGRAMS = DS.programs; SECTIONS = DS.sections; NEEDS_TEST = DS.needsTest; DE_EXCLUDED = DS.excluded || []; CHECKLIST = DS.checklist;
+  }
+  useDataset();
 
   /* ---------- helpers ---------- */
   const $ = (s, el = document) => el.querySelector(s);
@@ -70,8 +77,8 @@
   function moneySummary(p) {
     const c = calc(p);
     let html = "";
-    if (p.tuitionFree && p.sec !== "de") html += `<div class="mline good">✅ <b>You don't pay anything for the university.</b></div>`;
-    else if (p.sec === "de") html += `<div class="mline good">✅ <b>No tuition.</b> Only a semester fee of ${money(p.uniLines[p.uniLines.length - 1][1] / (p.living.months / 6), "EUR")}.</div>`;
+    if (p.tuitionFree && !p.blocked) html += `<div class="mline good">✅ <b>You don't pay anything for the university.</b></div>`;
+    else if (p.blocked) html += `<div class="mline good">✅ <b>No tuition.</b> Only a semester fee of ${money(p.uniLines[p.uniLines.length - 1][1] / (p.living.months / 6), "EUR")}.</div>`;
     if (p.stipend && p.stipend.total) html += `<div class="mline good">💰 <b>You get a stipend:</b> ${money(p.stipend.perYear || p.stipend.total / (p.living.months / 12), p.cur)} per year${p.stipend.perYear ? " (first year)" : ""}.</div>`;
     else if (p.stipend) html += `<div class="mline good">💰 <b>Stipend:</b> amount in your offer letter.</div>`;
     if (p.blocked) html += `<div class="mline pay">🏦 <b>Blocked account:</b> EUR 11,904 for 12 months.</div>`;
@@ -87,7 +94,7 @@
         <div><div class="uni">${p.flag} ${esc(p.uni)}</div><div class="prog">${esc(p.prog)}</div></div></div>
       <div class="chips"><span class="chip plain">${esc(p.city)}</span><span class="chip plain">${esc(p.duration)}</span>${p.field.map((f) => `<span class="chip">${f}</span>`).join("")}</div>
       <div class="chips">${rankChips(p)}</div>
-      <div class="chips">${engChip(p)}${chanceChip(p.chance)}${p.sec === "de" ? (p.direct ? '<span class="chip good">Apply directly, no uni-assist</span>' : '<span class="chip plain">Via uni-assist</span>') : ""}</div>
+      <div class="chips">${engChip(p)}${chanceChip(p.chance)}${p.country === "Germany" ? (p.direct ? '<span class="chip good">Apply directly, no uni-assist</span>' : '<span class="chip plain">Via uni-assist</span>') : ""}</div>
       ${moneySummary(p)}
       <div class="foot"><span>⏰ ${dl}</span><span>${esc(statusOf(p.id))}</span></div>
     </a>`;
@@ -108,7 +115,7 @@
     };
     return `
       <h1>${esc(prof().name)}'s master's options for 2027</h1>
-      <p class="lead">AI first, then CS and Data Science. Only programs that accept an English-taught degree (MOI letter) instead of IELTS, and are either almost free or fully funded.</p>
+      <p class="lead">${esc(DS.lead)}</p>
       <div class="stats">
         <div class="stat"><b>${PROGRAMS.length}</b><span>programs I can apply to with MOI</span></div>
         <div class="stat"><b>${upcoming[0] ? daysLeft(upcoming[0].d.d) + " days" : "None"}</b><span>to the next deadline${upcoming[0] ? " (" + esc(upcoming[0].p.uni.split(" (")[0]) + ")" : ""}</span></div>
@@ -119,7 +126,7 @@
         <div class="sec-head"><h2>⭐ My overall top 5</h2><a href="#best">Full ranking →</a></div>
         <ol class="toplist">${sorted.slice(0, 5).map((p) => topRow(p, "rankAll")).join("")}</ol>
       </div>
-      ${sec("de")}${sec("na")}${sec("world")}`;
+      ${Object.keys(SECTIONS).map(sec).join("")}`;
   }
 
   function topRow(p, rk) {
@@ -139,7 +146,7 @@
     return `
       <h1>Best for me, ranked</h1>
       <p class="lead">Every program here accepts an MOI letter (or needs only a quick email to confirm). Ranked by my real chance of getting in, how much money I need, and how close it is to AI.</p>
-      <div class="note">How it is ranked: 1) chance of admission with a 3.76 GPA (Mayar's profile), 2) money: free tuition or a stipend, 3) AI fit, 4) how soon I can start.</div>
+      <div class="note">${esc(DS.bestNote)}</div>
       <div class="grid">${list.map((p) => card(p, "rankAll")).join("")}</div>
       <h2>🌍 Same programs by university ranking</h2>
       <p class="muted">${esc(RANK_SOURCE)}. A lower number is a higher ranked university.</p>
@@ -162,19 +169,19 @@
   }
 
   const F = { country: "All", field: "All", money: "All", eng: "All", apply: "All", sort: "rank" };
-  const isDirect = (p) => p.sec !== "de" || !!p.direct;
+  const isDirect = (p) => p.country !== "Germany" || !!p.direct;
   function pageAll(secArg) {
     if (secArg) {
-      const map = { de: "Germany", na: "USA and Canada", world: "Worldwide" };
-      F.country = map[secArg] || "All";
+      F.country = SECTIONS[secArg] ? SECTIONS[secArg].name : "All";
     }
-    const countries = [...new Set(["All", "Germany", "USA and Canada", "Worldwide", ...PROGRAMS.map((p) => p.country)])];
+    const regionNames = Object.values(SECTIONS).map((s) => s.name);
+    const countries = [...new Set(["All", ...regionNames, ...PROGRAMS.map((p) => p.country)])];
+    const secOf = (name) => Object.keys(SECTIONS).find((k) => SECTIONS[k].name === name);
     const btns = (key, opts) => opts.map((o) => `<button class="fbtn ${F[key] === o ? "on" : ""}" data-f="${key}" data-v="${esc(o)}">${esc(o)}</button>`).join("");
     let list = PROGRAMS.filter((p) => {
-      if (F.country === "Germany" && p.sec !== "de") return false;
-      if (F.country === "USA and Canada" && p.sec !== "na") return false;
-      if (F.country === "Worldwide" && p.sec !== "world") return false;
-      if (!["All", "Germany", "USA and Canada", "Worldwide"].includes(F.country) && p.country !== F.country) return false;
+      const sk = secOf(F.country);
+      if (sk) { if (p.sec !== sk && p.country !== F.country) return false; }
+      else if (F.country !== "All" && p.country !== F.country) return false;
       if (F.field !== "All" && !p.field.includes(F.field)) return false;
       if (F.money === "Stipend" && !p.stipend) return false;
       if (F.money === "No tuition" && !p.tuitionFree) return false;
@@ -188,13 +195,13 @@
     if (F.sort === "deadline") list.sort((a, b) => dkey(a).localeCompare(dkey(b)));
     if (F.sort === "world") list.sort((a, b) => (a.rank.sort || 9999) - (b.rank.sort || 9999));
     if (F.sort === "bring") list.sort((a, b) => calc(a).bring * (rates[a.cur] || 1) - calc(b).bring * (rates[b.cur] || 1));
-    const showNeeds = F.country === "USA and Canada" ? NEEDS_TEST.filter((r) => r.sec === "na") : F.country === "Worldwide" ? NEEDS_TEST.filter((r) => r.sec === "world") : [];
+    const showNeeds = secOf(F.country) ? NEEDS_TEST.filter((r) => r.sec === secOf(F.country)) : [];
     return `
       <h1>All programs</h1>
       <p class="lead">Choose a country or region, then narrow it down. Tap any program for every detail.</p>
       <div class="filters">
         <div class="frow"><label>Country</label>${btns("country", countries)}</div>
-        <div class="frow"><label>Field</label>${btns("field", ["All", "AI", "CS", "Data"])}</div>
+        <div class="frow"><label>Field</label>${btns("field", ["All", ...DS.fields])}</div>
         <div class="frow"><label>Money</label>${btns("money", ["All", "Stipend", "No tuition", "No blocked account"])}</div>
         <div class="frow"><label>English</label>${btns("eng", ["All", "MOI confirmed"])}</div>
         <div class="frow"><label>Apply</label>${btns("apply", ["All", "Directly (no uni-assist)"])}</div>
@@ -203,7 +210,7 @@
           <span class="muted small" style="margin-left:6px">${list.length} program${list.length === 1 ? "" : "s"}</span></div>
       </div>
       ${list.length ? `<div class="grid">${list.map((p) => card(p, "rankAll")).join("")}</div>` : '<div class="empty">No program matches these filters.</div>'}
-      ${F.country === "Germany" ? `<h2>Checked in Germany but not suitable</h2><div class="card"><table class="money">${DE_EXCLUDED.map((r) => `<tr><td><b>${esc(r[0])}</b></td><td style="text-align:left;font-weight:400">${esc(r[1])}</td></tr>`).join("")}</table></div>` : ""}
+      ${F.country === "Germany" && DE_EXCLUDED.length ? `<h2>Checked in Germany but not suitable</h2><div class="card"><table class="money">${DE_EXCLUDED.map((r) => `<tr><td><b>${esc(r[0])}</b></td><td style="text-align:left;font-weight:400">${esc(r[1])}</td></tr>`).join("")}</table></div>` : ""}
       ${showNeeds.length ? `<h2>Funded, but needs an English test</h2>${needsTestTable(showNeeds)}` : ""}`;
   }
 
@@ -214,8 +221,8 @@
     const yrs = p.living.months / 12;
     const docsDone = p.docs.filter((_, i) => store.get(`doc_${p.id}_${i}`, false)).length;
     const say = [];
-    if (p.tuitionFree && p.sec !== "de") say.push(`<div class="big-say good">✅ <div>You don't pay anything for the university.<br><span>${esc(p.tuitionLine)}</span></div></div>`);
-    else say.push(`<div class="big-say ${p.sec === "de" ? "good" : "warn"}">${p.sec === "de" ? "✅" : "ℹ️"} <div>${p.sec === "de" ? "No tuition fees." : "Tuition"}<br><span>${esc(p.tuitionLine.replace(/^No tuition\. /, ""))}</span></div></div>`);
+    if (p.tuitionFree && !p.blocked) say.push(`<div class="big-say good">✅ <div>You don't pay anything for the university.<br><span>${esc(p.tuitionLine)}</span></div></div>`);
+    else say.push(`<div class="big-say ${p.blocked ? "good" : "warn"}">${p.blocked ? "✅" : "ℹ️"} <div>${p.blocked ? "No tuition fees." : "Tuition"}<br><span>${esc(p.tuitionLine.replace(/^No tuition\. /, ""))}</span></div></div>`);
     if (p.stipend) say.push(`<div class="big-say good">💰 <div>You get a stipend.<br><span>${esc(p.stipend.text)}</span></div></div>`);
     else say.push(`<div class="big-say pay">💸 <div>No stipend.<br><span>You live on your own money (the blocked account). You are allowed to work up to 20 hours a week.</span></div></div>`);
     if (p.blocked) say.push(`<div class="big-say pay">🏦 <div>Blocked account needed: EUR ${num(p.blocked.total)} for ${p.blocked.months} months (EUR ${num(p.blocked.perMonth)} per month).<br><span>${esc(p.blocked.note)}</span></div></div>`);
@@ -336,10 +343,7 @@
       <div class="card"><table class="money">${apps.map((a) => `<tr><td><a href="#p/${a.p.id}">${a.p.flag} ${esc(a.p.uni)}</a><div class="muted small">${esc(a.p.prog)}</div></td><td><select class="status-sel" data-status="${a.p.id}">${STATUSES.map((s) => `<option ${a.s === s ? "selected" : ""}>${s}</option>`).join("")}</select></td></tr>`).join("")}</table></div>
       <h2>Tips for the letters</h2>
       <div class="grid">
-        <div class="card"><h3>Recommendation letters</h3><ul class="list-plain small"><li>Ask 4 to 6 weeks before the first deadline.</li><li>Give each professor your CV, transcript, the list of programs and deadlines, and 3 things you want them to mention.</li><li>Use your university email and their official email in portals.</li></ul></div>
-        <div class="card"><h3>Motivation letter (Germany, Hungary, Italy)</h3><ul class="list-plain small"><li>One page. Why AI, why this university, what you built (diffusion model, Mentoro, CareChart, Nour HR).</li><li>Name 1 or 2 courses from their curriculum.</li><li>End with your plan after the degree.</li></ul></div>
-        <div class="card"><h3>Statement of purpose (funded programs)</h3><ul class="list-plain small"><li>Focus on research: a problem you care about and how you worked on it.</li><li>Name the professors you want to work with and why.</li><li>Mention your TA experience for assistantships.</li></ul></div>
-        <div class="card"><h3>Email to a possible supervisor</h3><ul class="list-plain small"><li>Subject: Prospective MSc student, Fall 2027, interest in your work on [topic].</li><li>5 to 7 lines: who you are, one paper of theirs you read, your matching project, CV and GitHub attached.</li><li>Follow up once after 10 days.</li></ul></div>
+${DS.tips}
       </div>`;
   }
 
@@ -351,24 +355,7 @@
         <div class="rates">${Object.keys(RATES_DEFAULT).map((c) => `<label>${c}<input type="number" step="0.001" data-rate="${c}" value="${rates[c]}"></label>`).join("")}</div>
         <p class="small muted">Defaults are approximate. <button class="fbtn" id="resetRates">Reset</button></p></div>
       <div class="grid" style="margin-top:14px">
-        <div class="card"><h3>🇩🇪 Germany</h3><ul class="list-plain small">
-          <li><b>Tuition: none</b> at these public universities. You only pay a semester fee (EUR 118 to 440 every 6 months).</li>
-          <li><b>Blocked account: EUR 11,904</b> (EUR 992 x 12 months). Opened after admission, before the visa. It is your money: you get EUR 992 each month in Germany.</li>
-          <li>For year 2 you show the same amount again (top up, or a job contract). You can work 20 hours a week.</li>
-          <li>Other costs: visa EUR 75, flight, room deposit.</li></ul></div>
-        <div class="card"><h3>🇨🇦 Canada</h3><ul class="list-plain small">
-          <li>Funded thesis master's: you get a yearly funding amount and pay tuition from it.</li>
-          <li>Study permit proof of funds: <b>CAD 23,448</b> living money (applications from 1 Sep 2026) plus first-year tuition. Your funding letter counts toward it.</li>
-          <li>Study permit fee CAD 150 + biometrics CAD 85.</li></ul></div>
-        <div class="card"><h3>🇺🇸 USA</h3><ul class="list-plain small">
-          <li>Funded spots come with an assistantship: tuition waived + monthly stipend.</li>
-          <li>Visa costs: F-1 fee USD 185, SEVIS USD 350, and a USD 250 visa integrity fee paid when the visa is issued.</li>
-          <li>Stipends often cover 9 months; plan for summer.</li></ul></div>
-        <div class="card"><h3>🌍 Scholarships</h3><ul class="list-plain small">
-          <li><b>Hong Kong:</b> studentship much larger than tuition.</li>
-          <li><b>Hungary:</b> free tuition, dorm and insurance; the stipend is small, so bring some money for each month.</li>
-          <li><b>Italy:</b> EUR 10,800 for 9 months + fees waived; plan year 2 money.</li>
-          <li><b>China:</b> everything covered + monthly stipend.</li></ul></div>
+${DS.moneyCards}
       </div>
       <h2>Compare: money to bring and overall cost</h2>
       <div class="card" style="overflow-x:auto"><table class="money"><tr><td><b>Program</b></td><td><b>Bring from Egypt</b></td><td><b>Overall from pocket</b></td></tr>
@@ -435,7 +422,7 @@
 
   let pendingPin = null;
   function enter(pid) {
-    profile = pid; raw.set("current", pid); loadRates(); pendingPin = null;
+    profile = pid; raw.set("current", pid); loadRates(); useDataset(); pendingPin = null; Object.assign(F, { country: "All", field: "All", money: "All", eng: "All", apply: "All" });
     if (location.hash !== "#home") location.hash = "#home"; render(); window.scrollTo(0, 0);
   }
   document.addEventListener("submit", (e) => {

@@ -8,6 +8,7 @@ const RANK_SOURCE = "Times Higher Education World University Rankings 2027 (publ
 const PROFILES = [
   { id: "mayar", name: "Mayar", color: "#0e6b6b" },
   { id: "rodayna", name: "Rodayna", color: "#8a4fa3" },
+  { id: "aya", name: "Aya", color: "#c2672b", data: "aya" },
 ];
 
 const RATES_DEFAULT = { EUR: 61, USD: 52.7, CAD: 38, HKD: 6.8, HUF: 0.155, CNY: 7.4, QAR: 14.5 };
@@ -620,3 +621,31 @@ const CHECKLIST = [
     ["flight", "Book the flight", "Everyone"],
   ]},
 ];
+
+const MAIN_TIPS = `
+        <div class="card"><h3>Recommendation letters</h3><ul class="list-plain small"><li>Ask 4 to 6 weeks before the first deadline.</li><li>Give each professor your CV, transcript, the list of programs and deadlines, and 3 things you want them to mention.</li><li>Use your university email and their official email in portals.</li></ul></div>
+        <div class="card"><h3>Motivation letter (Germany, Hungary, Italy)</h3><ul class="list-plain small"><li>One page. Why AI, why this university, what you built (diffusion model, Mentoro, CareChart, Nour HR).</li><li>Name 1 or 2 courses from their curriculum.</li><li>End with your plan after the degree.</li></ul></div>
+        <div class="card"><h3>Statement of purpose (funded programs)</h3><ul class="list-plain small"><li>Focus on research: a problem you care about and how you worked on it.</li><li>Name the professors you want to work with and why.</li><li>Mention your TA experience for assistantships.</li></ul></div>
+        <div class="card"><h3>Email to a possible supervisor</h3><ul class="list-plain small"><li>Subject: Prospective MSc student, Fall 2027, interest in your work on [topic].</li><li>5 to 7 lines: who you are, one paper of theirs you read, your matching project, CV and GitHub attached.</li><li>Follow up once after 10 days.</li></ul></div>
+`;
+
+const MAIN_MONEY = `
+        <div class="card"><h3>🇩🇪 Germany</h3><ul class="list-plain small">
+          <li><b>Tuition: none</b> at these public universities. You only pay a semester fee (EUR 118 to 440 every 6 months).</li>
+          <li><b>Blocked account: EUR 11,904</b> (EUR 992 x 12 months). Opened after admission, before the visa. It is your money: you get EUR 992 each month in Germany.</li>
+          <li>For year 2 you show the same amount again (top up, or a job contract). You can work 20 hours a week.</li>
+          <li>Other costs: visa EUR 75, flight, room deposit.</li></ul></div>
+        <div class="card"><h3>🇨🇦 Canada</h3><ul class="list-plain small">
+          <li>Funded thesis master's: you get a yearly funding amount and pay tuition from it.</li>
+          <li>Study permit proof of funds: <b>CAD 23,448</b> living money (applications from 1 Sep 2026) plus first-year tuition. Your funding letter counts toward it.</li>
+          <li>Study permit fee CAD 150 + biometrics CAD 85.</li></ul></div>
+        <div class="card"><h3>🇺🇸 USA</h3><ul class="list-plain small">
+          <li>Funded spots come with an assistantship: tuition waived + monthly stipend.</li>
+          <li>Visa costs: F-1 fee USD 185, SEVIS USD 350, and a USD 250 visa integrity fee paid when the visa is issued.</li>
+          <li>Stipends often cover 9 months; plan for summer.</li></ul></div>
+        <div class="card"><h3>🌍 Scholarships</h3><ul class="list-plain small">
+          <li><b>Hong Kong:</b> studentship much larger than tuition.</li>
+          <li><b>Hungary:</b> free tuition, dorm and insurance; the stipend is small, so bring some money for each month.</li>
+          <li><b>Italy:</b> EUR 10,800 for 9 months + fees waived; plan year 2 money.</li>
+          <li><b>China:</b> everything covered + monthly stipend.</li></ul></div>
+`;
