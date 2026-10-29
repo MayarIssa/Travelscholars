@@ -60,8 +60,9 @@
   const engChip = (p) => p.eng.s === "yes"
     ? '<span class="chip good">MOI accepted, no IELTS</span>'
     : '<span class="chip warn">MOI: email to confirm</span>';
+  const wr = (w) => (/^=/.test(w) ? "#" + w.slice(1) + " (tied)" : /^\d+$/.test(w) ? "#" + w : w);
   const rankChips = (p) => p.rank.world
-    ? `<span class="chip rank-chip">🌍 World #${esc(p.rank.world)}</span><span class="chip rank-chip">🏅 #${esc(p.rank.country)}</span>`
+    ? `<span class="chip rank-chip">🌍 World ${esc(wr(p.rank.world))}</span><span class="chip rank-chip">🏅 #${esc(p.rank.country)}</span>`
     : `<span class="chip plain">🏅 ${esc(p.rank.country)}</span>`;
   const statusOf = (id) => store.get("status_" + id, "Not started");
   const STATUSES = ["Not started", "Preparing", "Applied", "Accepted", "Rejected", "Not applying"];
@@ -86,7 +87,7 @@
         <div><div class="uni">${p.flag} ${esc(p.uni)}</div><div class="prog">${esc(p.prog)}</div></div></div>
       <div class="chips"><span class="chip plain">${esc(p.city)}</span><span class="chip plain">${esc(p.duration)}</span>${p.field.map((f) => `<span class="chip">${f}</span>`).join("")}</div>
       <div class="chips">${rankChips(p)}</div>
-      <div class="chips">${engChip(p)}${chanceChip(p.chance)}</div>
+      <div class="chips">${engChip(p)}${chanceChip(p.chance)}${p.sec === "de" ? (p.direct ? '<span class="chip good">Apply directly, no uni-assist</span>' : '<span class="chip plain">Via uni-assist</span>') : ""}</div>
       ${moneySummary(p)}
       <div class="foot"><span>⏰ ${dl}</span><span>${esc(statusOf(p.id))}</span></div>
     </a>`;
@@ -129,7 +130,7 @@
     else right = `<span class="chip">Uni cost ${money(c.uni, p.cur)} total</span>`;
     return `<li><a href="#p/${p.id}"><div class="rank">${p[rk]}</div>
       <div><div class="t1">${p.flag} ${esc(p.uni)}</div><div class="t2">${esc(p.prog)}</div></div>
-      <div class="right">${right}<div class="muted" style="margin-top:4px">${p.rank.world ? "World #" + esc(p.rank.world) + " · " : ""}${chanceTxt(p)}</div></div></a></li>`;
+      <div class="right">${right}<div class="muted" style="margin-top:4px">${p.rank.world ? "World " + esc(wr(p.rank.world)) + " · " : ""}${chanceTxt(p)}</div></div></a></li>`;
   }
   const chanceTxt = (p) => "Chance: " + esc(p.chance);
 
@@ -143,7 +144,7 @@
       <h2>🌍 Same programs by university ranking</h2>
       <p class="muted">${esc(RANK_SOURCE)}. A lower number is a higher ranked university.</p>
       <div class="card" style="overflow-x:auto"><table class="money rank-table"><tr><td><b>University</b></td><td><b>World</b></td><td><b>In its country</b></td></tr>
-      ${[...PROGRAMS].filter((p, i, arr) => arr.findIndex((q) => q.uni === p.uni) === i).sort((a, b) => (a.rank.sort || 9999) - (b.rank.sort || 9999)).map((p) => `<tr><td><a href="#p/${p.id}">${p.flag} ${esc(p.uni)}</a></td><td>${p.rank.world ? "#" + esc(p.rank.world) : "Not ranked"}</td><td>${esc(p.rank.country)}</td></tr>`).join("")}
+      ${[...PROGRAMS].filter((p, i, arr) => arr.findIndex((q) => q.uni === p.uni) === i).sort((a, b) => (a.rank.sort || 9999) - (b.rank.sort || 9999)).map((p) => `<tr><td><a href="#p/${p.id}">${p.flag} ${esc(p.uni)}</a></td><td>${p.rank.world ? esc(wr(p.rank.world)) : "Not ranked"}</td><td>${esc(p.rank.country)}</td></tr>`).join("")}
       </table></div>
       <h2>Also good, but I would need an English test first</h2>
       <p class="muted">If I take IELTS or Duolingo, these open up too. Most are very well funded.</p>
@@ -160,7 +161,8 @@
     </div>`).join("")}</div>`;
   }
 
-  const F = { country: "All", field: "All", money: "All", eng: "All", sort: "rank" };
+  const F = { country: "All", field: "All", money: "All", eng: "All", apply: "All", sort: "rank" };
+  const isDirect = (p) => p.sec !== "de" || !!p.direct;
   function pageAll(secArg) {
     if (secArg) {
       const map = { de: "Germany", na: "USA and Canada", world: "Worldwide" };
@@ -178,6 +180,7 @@
       if (F.money === "No tuition" && !p.tuitionFree) return false;
       if (F.money === "No blocked account" && p.blocked) return false;
       if (F.eng === "MOI confirmed" && p.eng.s !== "yes") return false;
+      if (F.apply !== "All" && !isDirect(p)) return false;
       return true;
     });
     const dkey = (p) => { const d = nextDeadline(p); return d && d.d ? d.d : "9999"; };
@@ -194,6 +197,7 @@
         <div class="frow"><label>Field</label>${btns("field", ["All", "AI", "CS", "Data"])}</div>
         <div class="frow"><label>Money</label>${btns("money", ["All", "Stipend", "No tuition", "No blocked account"])}</div>
         <div class="frow"><label>English</label>${btns("eng", ["All", "MOI confirmed"])}</div>
+        <div class="frow"><label>Apply</label>${btns("apply", ["All", "Directly (no uni-assist)"])}</div>
         <div class="frow"><label>Sort by</label>
           <select id="sort"><option value="rank" ${F.sort === "rank" ? "selected" : ""}>Best for me</option><option value="deadline" ${F.sort === "deadline" ? "selected" : ""}>Nearest deadline</option><option value="bring" ${F.sort === "bring" ? "selected" : ""}>Least money to bring</option><option value="world" ${F.sort === "world" ? "selected" : ""}>Best world ranking</option></select>
           <span class="muted small" style="margin-left:6px">${list.length} program${list.length === 1 ? "" : "s"}</span></div>
@@ -228,7 +232,7 @@
         <div class="chips"><span class="chip">#${p.rankAll} best for me</span>${engChip(p)}${chanceChip(p.chance)}</div>
         <h1>${esc(p.prog)}</h1><div class="lead" style="margin:0">${esc(p.uni)} · ${esc(p.city)} · ${esc(p.duration)}</div></div></div>
       <div class="rankbox">
-        <div><small>World ranking</small><b>${p.rank.world ? "#" + esc(p.rank.world) : "Not ranked"}</b></div>
+        <div><small>World ranking</small><b>${p.rank.world ? esc(wr(p.rank.world)) : "Not ranked"}</b></div>
         <div><small>Ranking in ${esc(p.country)}</small><b>${esc(p.rank.country)}</b></div>
         <div class="src">Source: ${esc(RANK_SOURCE)}</div>
       </div>
