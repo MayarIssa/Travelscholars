@@ -2,11 +2,25 @@
   "use strict";
 
   /* ---------- storage (safe) ---------- */
-  const store = {
+  const raw = {
     get(k, d) { try { const v = localStorage.getItem("ts_" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem("ts_" + k, JSON.stringify(v)); } catch (e) { /* ignore */ } },
+    del(k) { try { localStorage.removeItem("ts_" + k); } catch (e) { /* ignore */ } },
   };
-  let rates = Object.assign({}, RATES_DEFAULT, store.get("rates", {}));
+  let unlocked = {};
+  try { unlocked = JSON.parse(sessionStorage.getItem("ts_unlocked") || "{}"); } catch (e) { unlocked = {}; }
+  const saveUnlocked = () => { try { sessionStorage.setItem("ts_unlocked", JSON.stringify(unlocked)); } catch (e) { /* ignore */ } };
+  let profile = raw.get("current", null);
+  if (profile && raw.get("pin_" + profile, "") && !unlocked[profile]) profile = null;
+  /* every profile has its own saved data: keys are prefixed with the profile id */
+  const store = {
+    get(k, d) { return raw.get(profile + "_" + k, d); },
+    set(k, v) { raw.set(profile + "_" + k, v); },
+  };
+  let rates = {};
+  const loadRates = () => { rates = Object.assign({}, RATES_DEFAULT, store.get("rates", {})); };
+  if (profile) loadRates();
+  const prof = () => PROFILES.find((p) => p.id === profile);
 
   /* ---------- helpers ---------- */
   const $ = (s, el = document) => el.querySelector(s);
@@ -46,6 +60,9 @@
   const engChip = (p) => p.eng.s === "yes"
     ? '<span class="chip good">MOI accepted, no IELTS</span>'
     : '<span class="chip warn">MOI: email to confirm</span>';
+  const rankChips = (p) => p.rank.world
+    ? `<span class="chip rank-chip">🌍 World #${esc(p.rank.world)}</span><span class="chip rank-chip">🏅 #${esc(p.rank.country)}</span>`
+    : `<span class="chip plain">🏅 ${esc(p.rank.country)}</span>`;
   const statusOf = (id) => store.get("status_" + id, "Not started");
   const STATUSES = ["Not started", "Preparing", "Applied", "Accepted", "Rejected", "Not applying"];
 
@@ -68,6 +85,7 @@
       <div class="head"><div class="rank">${p[rankKey]}</div>
         <div><div class="uni">${p.flag} ${esc(p.uni)}</div><div class="prog">${esc(p.prog)}</div></div></div>
       <div class="chips"><span class="chip plain">${esc(p.city)}</span><span class="chip plain">${esc(p.duration)}</span>${p.field.map((f) => `<span class="chip">${f}</span>`).join("")}</div>
+      <div class="chips">${rankChips(p)}</div>
       <div class="chips">${engChip(p)}${chanceChip(p.chance)}</div>
       ${moneySummary(p)}
       <div class="foot"><span>⏰ ${dl}</span><span>${esc(statusOf(p.id))}</span></div>
@@ -88,8 +106,8 @@
         <ol class="toplist">${list.map((p) => topRow(p, "rankSec")).join("")}</ol></div>`;
     };
     return `
-      <h1>My master's options for 2027</h1>
-      <p class="lead">AI first, then CS and Data Science. Only programs that accept my English-taught degree (MOI letter) instead of IELTS, and are either almost free or fully funded.</p>
+      <h1>${esc(prof().name)}'s master's options for 2027</h1>
+      <p class="lead">AI first, then CS and Data Science. Only programs that accept an English-taught degree (MOI letter) instead of IELTS, and are either almost free or fully funded.</p>
       <div class="stats">
         <div class="stat"><b>${PROGRAMS.length}</b><span>programs I can apply to with MOI</span></div>
         <div class="stat"><b>${upcoming[0] ? daysLeft(upcoming[0].d.d) + " days" : "None"}</b><span>to the next deadline${upcoming[0] ? " (" + esc(upcoming[0].p.uni.split(" (")[0]) + ")" : ""}</span></div>
@@ -111,7 +129,7 @@
     else right = `<span class="chip">Uni cost ${money(c.uni, p.cur)} total</span>`;
     return `<li><a href="#p/${p.id}"><div class="rank">${p[rk]}</div>
       <div><div class="t1">${p.flag} ${esc(p.uni)}</div><div class="t2">${esc(p.prog)}</div></div>
-      <div class="right">${right}<div class="muted" style="margin-top:4px">${chanceTxt(p)}</div></div></a></li>`;
+      <div class="right">${right}<div class="muted" style="margin-top:4px">${p.rank.world ? "World #" + esc(p.rank.world) + " · " : ""}${chanceTxt(p)}</div></div></a></li>`;
   }
   const chanceTxt = (p) => "Chance: " + esc(p.chance);
 
@@ -119,9 +137,14 @@
     const list = [...PROGRAMS].sort((a, b) => a.rankAll - b.rankAll);
     return `
       <h1>Best for me, ranked</h1>
-      <p class="lead">Every program here accepts my MOI letter (or needs only a quick email to confirm). Ranked by my real chance of getting in, how much money I need, and how close it is to AI.</p>
-      <div class="note">How I ranked: 1) chance of admission with a 3.76 GPA, 2) money: free tuition or a stipend, 3) AI fit, 4) how soon I can start.</div>
+      <p class="lead">Every program here accepts an MOI letter (or needs only a quick email to confirm). Ranked by my real chance of getting in, how much money I need, and how close it is to AI.</p>
+      <div class="note">How it is ranked: 1) chance of admission with a 3.76 GPA (Mayar's profile), 2) money: free tuition or a stipend, 3) AI fit, 4) how soon I can start.</div>
       <div class="grid">${list.map((p) => card(p, "rankAll")).join("")}</div>
+      <h2>🌍 Same programs by university ranking</h2>
+      <p class="muted">${esc(RANK_SOURCE)}. A lower number is a higher ranked university.</p>
+      <div class="card" style="overflow-x:auto"><table class="money rank-table"><tr><td><b>University</b></td><td><b>World</b></td><td><b>In its country</b></td></tr>
+      ${[...PROGRAMS].filter((p, i, arr) => arr.findIndex((q) => q.uni === p.uni) === i).sort((a, b) => (a.rank.sort || 9999) - (b.rank.sort || 9999)).map((p) => `<tr><td><a href="#p/${p.id}">${p.flag} ${esc(p.uni)}</a></td><td>${p.rank.world ? "#" + esc(p.rank.world) : "Not ranked"}</td><td>${esc(p.rank.country)}</td></tr>`).join("")}
+      </table></div>
       <h2>Also good, but I would need an English test first</h2>
       <p class="muted">If I take IELTS or Duolingo, these open up too. Most are very well funded.</p>
       ${needsTestTable(NEEDS_TEST)}`;
@@ -160,6 +183,7 @@
     const dkey = (p) => { const d = nextDeadline(p); return d && d.d ? d.d : "9999"; };
     if (F.sort === "rank") list.sort((a, b) => a.rankAll - b.rankAll);
     if (F.sort === "deadline") list.sort((a, b) => dkey(a).localeCompare(dkey(b)));
+    if (F.sort === "world") list.sort((a, b) => (a.rank.sort || 9999) - (b.rank.sort || 9999));
     if (F.sort === "bring") list.sort((a, b) => calc(a).bring * (rates[a.cur] || 1) - calc(b).bring * (rates[b.cur] || 1));
     const showNeeds = F.country === "USA and Canada" ? NEEDS_TEST.filter((r) => r.sec === "na") : F.country === "Worldwide" ? NEEDS_TEST.filter((r) => r.sec === "world") : [];
     return `
@@ -171,7 +195,7 @@
         <div class="frow"><label>Money</label>${btns("money", ["All", "Stipend", "No tuition", "No blocked account"])}</div>
         <div class="frow"><label>English</label>${btns("eng", ["All", "MOI confirmed"])}</div>
         <div class="frow"><label>Sort by</label>
-          <select id="sort"><option value="rank" ${F.sort === "rank" ? "selected" : ""}>Best for me</option><option value="deadline" ${F.sort === "deadline" ? "selected" : ""}>Nearest deadline</option><option value="bring" ${F.sort === "bring" ? "selected" : ""}>Least money to bring</option></select>
+          <select id="sort"><option value="rank" ${F.sort === "rank" ? "selected" : ""}>Best for me</option><option value="deadline" ${F.sort === "deadline" ? "selected" : ""}>Nearest deadline</option><option value="bring" ${F.sort === "bring" ? "selected" : ""}>Least money to bring</option><option value="world" ${F.sort === "world" ? "selected" : ""}>Best world ranking</option></select>
           <span class="muted small" style="margin-left:6px">${list.length} program${list.length === 1 ? "" : "s"}</span></div>
       </div>
       ${list.length ? `<div class="grid">${list.map((p) => card(p, "rankAll")).join("")}</div>` : '<div class="empty">No program matches these filters.</div>'}
@@ -203,6 +227,11 @@
       <div class="dhead"><div class="flag">${p.flag}</div><div style="flex:1;min-width:240px">
         <div class="chips"><span class="chip">#${p.rankAll} best for me</span>${engChip(p)}${chanceChip(p.chance)}</div>
         <h1>${esc(p.prog)}</h1><div class="lead" style="margin:0">${esc(p.uni)} · ${esc(p.city)} · ${esc(p.duration)}</div></div></div>
+      <div class="rankbox">
+        <div><small>World ranking</small><b>${p.rank.world ? "#" + esc(p.rank.world) : "Not ranked"}</b></div>
+        <div><small>Ranking in ${esc(p.country)}</small><b>${esc(p.rank.country)}</b></div>
+        <div class="src">Source: ${esc(RANK_SOURCE)}</div>
+      </div>
 
       <div class="kbox">
         <div class="k"><small>Paid to the university (total)</small><b>${money(c.uni, p.cur)}</b><span class="egp">${egp(c.uni, p.cur)}</span></div>
@@ -250,7 +279,9 @@
           <p class="small muted">General papers (MOI letter, letters, CV) are also in <a href="#checklist">My checklist</a>.</p></div>
         <div class="card"><h3>📌 My application status</h3>
           <select class="status-sel" data-status="${p.id}">${STATUSES.map((s) => `<option ${statusOf(p.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select>
-          <p class="muted small">Saved on this device.</p></div>
+          <p class="muted small">Saved in ${esc(prof().name)}'s profile on this device.</p>
+          <h3 style="margin-top:16px">📝 My notes</h3>
+          <textarea class="notes" data-note="${p.id}" placeholder="Professors I emailed, login details hint, questions to ask...">${esc(store.get("note_" + p.id, ""))}</textarea></div>
       </div>`;
   }
 
@@ -277,6 +308,7 @@
   function checklistProgress() {
     let total = 0, done = 0;
     CHECKLIST.forEach((g) => g.items.forEach((it) => { total++; if (store.get("chk_" + it[0], false)) done++; }));
+    store.get("custom", []).forEach((it) => { total++; if (it.done) done++; });
     return { total, done };
   }
 
@@ -285,13 +317,17 @@
     const apps = PROGRAMS.map((p) => ({ p, s: statusOf(p.id) }));
     return `
       <h1>My checklist</h1>
-      <p class="lead">Tick each paper when it is ready. Your ticks are saved on this device.</p>
+      <p class="lead">${esc(prof().name)}'s checklist. Tick each paper when it is ready. Only ${esc(prof().name)}'s profile can see or change these ticks.</p>
       <div class="card"><b>${cp.done} of ${cp.total} done</b><div class="progress"><div style="width:${(cp.done / cp.total) * 100}%"></div></div></div>
       <div class="grid" style="margin-top:14px">${CHECKLIST.map((g) => {
         const d = g.items.filter((it) => store.get("chk_" + it[0], false)).length;
         return `<div class="card"><h3>${g.icon} ${esc(g.group)} <span class="muted small">(${d}/${g.items.length})</span></h3>
           ${g.items.map((it) => { const on = store.get("chk_" + it[0], false); return `<label class="check ${on ? "done" : ""}"><input type="checkbox" data-k="chk_${it[0]}" ${on ? "checked" : ""}><span class="txt">${esc(it[1])}<span class="for">Needed for: ${esc(it[2])}</span></span></label>`; }).join("")}</div>`;
-      }).join("")}</div>
+      }).join("")}
+      <div class="card"><h3>➕ My own items</h3>
+        ${store.get("custom", []).map((it, i) => `<div class="check ${it.done ? "done" : ""}"><input type="checkbox" data-custom="${i}" ${it.done ? "checked" : ""}><span class="txt" style="flex:1">${esc(it.text)}</span><button class="del" data-del="${i}" title="Remove">✕</button></div>`).join("") || '<p class="muted small">Add anything else you need to do.</p>'}
+        <form class="addrow" id="addCustom"><input name="t" placeholder="e.g. Translate birth certificate" maxlength="160" required><button class="fbtn on" type="submit">Add</button></form>
+      </div></div>
       <h2>My applications</h2>
       <div class="card"><table class="money">${apps.map((a) => `<tr><td><a href="#p/${a.p.id}">${a.p.flag} ${esc(a.p.uni)}</a><div class="muted small">${esc(a.p.prog)}</div></td><td><select class="status-sel" data-status="${a.p.id}">${STATUSES.map((s) => `<option ${a.s === s ? "selected" : ""}>${s}</option>`).join("")}</select></td></tr>`).join("")}</table></div>
       <h2>Tips for the letters</h2>
@@ -336,8 +372,47 @@
       </table><p class="small muted">In EGP using the rates above. Germany includes the full blocked account as money to bring.</p></div>`;
   }
 
+  function pageProfiles(askPin) {
+    if (askPin) {
+      const p = PROFILES.find((x) => x.id === askPin);
+      return `<div class="profiles"><h1>Hi ${esc(p.name)} 👋</h1><p class="lead">Enter your PIN to open your part.</p>
+        <form id="pinForm" data-pid="${p.id}" class="addrow" style="max-width:320px;margin:0 auto"><input name="pin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN" autofocus required><button class="fbtn on" type="submit">Open</button></form>
+        <p id="pinErr" class="small" style="color:var(--pay)"></p>
+        <p><a href="#" data-back="1">← Choose another profile</a></p></div>`;
+    }
+    return `<div class="profiles">
+      <h1>Who is checking?</h1>
+      <p class="lead">Each person has a separate part. Ticks, statuses, notes and your own checklist items in one profile never change the other.</p>
+      <div class="pgrid">${PROFILES.map((p) => `<button class="pbtn" data-pick="${p.id}" style="--pc:${p.color}">
+        <span class="avatar">${esc(p.name[0])}</span><b>${esc(p.name)}</b>
+        <span class="small muted">${raw.get("pin_" + p.id, "") ? "🔒 PIN protected" : "No PIN yet"}</span></button>`).join("")}</div>
+      <p class="small muted">Data is saved in this browser. Set a PIN inside your profile so the other person cannot open your part on a shared device.</p></div>`;
+  }
+
+  function pageSettings() {
+    const has = !!raw.get("pin_" + profile, "");
+    return `<h1>${esc(prof().name)}'s profile</h1>
+      <div class="card" style="max-width:520px"><h3>🔒 PIN</h3>
+        <p class="muted small">${has ? "Your profile is protected. Change or remove the PIN below." : "Add a PIN so only you can open and edit your part."}</p>
+        <form id="setPin" class="addrow"><input name="pin" type="password" inputmode="numeric" minlength="4" maxlength="8" placeholder="New PIN (4 to 8 digits)" pattern="[0-9]{4,8}" required><button class="fbtn on" type="submit">Save PIN</button></form>
+        ${has ? '<p><button class="fbtn" id="removePin">Remove PIN</button></p>' : ""}
+        <p id="pinMsg" class="small" style="color:var(--good)"></p></div>
+      <div class="card" style="max-width:520px;margin-top:14px"><h3>👥 Switch profile</h3><p><button class="fbtn on" data-switch="1">Switch to another profile</button></p></div>`;
+  }
+
+  function topActions() {
+    const el = $("#topActions");
+    if (!el) return;
+    if (!profile) { el.innerHTML = ""; return; }
+    const cp = checklistProgress();
+    el.innerHTML = `<a class="cl-btn" href="#checklist">✅ My checklist <span>${cp.done}/${cp.total}</span></a>
+      <a class="who" href="#profile" style="--pc:${prof().color}" title="Profile"><span class="avatar sm">${esc(prof().name[0])}</span><span class="who-name">${esc(prof().name)}</span></a>`;
+  }
+
   /* ---------- router ---------- */
   function render() {
+    document.body.classList.toggle("no-profile", !profile);
+    if (!profile) { $("#app").innerHTML = pageProfiles(pendingPin); topActions(); return; }
     const h = (location.hash || "#home").slice(1);
     const [page, arg] = h.split("/");
     let html, tab = page;
@@ -346,20 +421,52 @@
     else if (page === "deadlines") html = pageDeadlines();
     else if (page === "checklist") html = pageChecklist();
     else if (page === "money") html = pageMoney();
+    else if (page === "profile") html = pageSettings();
     else if (page === "p") { html = pageProgram(arg); tab = "all"; }
     else { html = pageHome(); tab = "home"; }
     $("#app").innerHTML = html;
     document.querySelectorAll("#tabs a").forEach((a) => a.classList.toggle("on", a.dataset.tab === tab));
+    topActions();
   }
 
+  let pendingPin = null;
+  function enter(pid) {
+    profile = pid; raw.set("current", pid); loadRates(); pendingPin = null;
+    if (location.hash !== "#home") location.hash = "#home"; render(); window.scrollTo(0, 0);
+  }
+  document.addEventListener("submit", (e) => {
+    const f = e.target; e.preventDefault();
+    if (f.id === "pinForm") {
+      const pid = f.dataset.pid;
+      if (f.pin.value === raw.get("pin_" + pid, "")) { unlocked[pid] = true; saveUnlocked(); enter(pid); }
+      else { $("#pinErr").textContent = "Wrong PIN, try again."; f.pin.value = ""; }
+    } else if (f.id === "setPin") {
+      raw.set("pin_" + profile, f.pin.value); unlocked[profile] = true; saveUnlocked(); render(); $("#pinMsg").textContent = "PIN saved.";
+    } else if (f.id === "addCustom") {
+      const t = f.t.value.trim(); if (!t) return;
+      const list = store.get("custom", []); list.push({ text: t, done: false }); store.set("custom", list); render();
+      const inp = $("#addCustom input"); if (inp) inp.focus();
+    }
+  });
+  document.addEventListener("input", (e) => {
+    if (e.target.dataset.note) store.set("note_" + e.target.dataset.note, e.target.value);
+  });
   document.addEventListener("click", (e) => {
+    const pick = e.target.closest("[data-pick]");
+    if (pick) { const pid = pick.dataset.pick; if (raw.get("pin_" + pid, "") && !unlocked[pid]) { pendingPin = pid; render(); } else enter(pid); return; }
+    if (e.target.closest("[data-back]")) { e.preventDefault(); pendingPin = null; render(); return; }
+    if (e.target.closest("[data-switch]")) { delete unlocked[profile]; saveUnlocked(); profile = null; raw.del("current"); render(); window.scrollTo(0, 0); return; }
+    if (e.target.id === "removePin") { raw.del("pin_" + profile); render(); return; }
+    const del = e.target.closest("[data-del]");
+    if (del) { const list = store.get("custom", []); list.splice(+del.dataset.del, 1); store.set("custom", list); render(); return; }
     const b = e.target.closest("[data-f]");
     if (b) { F[b.dataset.f] = b.dataset.v; if (location.hash.startsWith("#all/")) { history.replaceState(null, "", "#all"); } render(); return; }
     if (e.target.id === "resetRates") { rates = Object.assign({}, RATES_DEFAULT); store.set("rates", {}); render(); }
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
-    if (t.dataset.k) { store.set(t.dataset.k, t.checked); const y = window.scrollY; render(); window.scrollTo(0, y); }
+    if (t.dataset.custom) { const list = store.get("custom", []); list[+t.dataset.custom].done = t.checked; store.set("custom", list); const y = window.scrollY; render(); window.scrollTo(0, y); }
+    else if (t.dataset.k) { store.set(t.dataset.k, t.checked); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (t.dataset.status) { store.set("status_" + t.dataset.status, t.value); }
     else if (t.id === "sort") { F.sort = t.value; render(); }
     else if (t.dataset.rate) { const v = parseFloat(t.value); if (v > 0) { rates[t.dataset.rate] = v; store.set("rates", rates); const y = window.scrollY; render(); window.scrollTo(0, y); } }

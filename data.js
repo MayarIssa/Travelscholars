@@ -3,6 +3,13 @@
 
 const TODAY = "2026-10-29";
 
+const RANK_SOURCE = "Times Higher Education World University Rankings 2027 (published 30 Sep 2026)";
+
+const PROFILES = [
+  { id: "mayar", name: "Mayar", color: "#0e6b6b" },
+  { id: "rodayna", name: "Rodayna", color: "#8a4fa3" },
+];
+
 const RATES_DEFAULT = { EUR: 61, USD: 52.7, CAD: 38, HKD: 6.8, HUF: 0.155, CNY: 7.4, QAR: 14.5 };
 
 const SECTIONS = {
@@ -35,7 +42,7 @@ const deBring = (appFees, firstSem) => [
 const PROGRAMS = [
   /* ============================ GERMANY ============================ */
   {
-    id: "passau-aie", sec: "de", country: "Germany", flag: "🇩🇪",
+    id: "passau-aie", rank: { world: "601 to 650", country: "=47 of 55 in Germany", sort: 601 }, sec: "de", country: "Germany", flag: "🇩🇪",
     uni: "University of Passau", prog: "M.Sc. Artificial Intelligence Engineering",
     city: "Passau, Bavaria", field: ["AI"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
     intake: "April and October",
@@ -67,7 +74,7 @@ const PROGRAMS = [
     ],
   },
   {
-    id: "thws-ai", sec: "de", country: "Germany", flag: "🇩🇪",
+    id: "thws-ai", rank: { world: null, country: "Not ranked (universities of applied sciences are rarely in world rankings)", sort: null }, sec: "de", country: "Germany", flag: "🇩🇪",
     uni: "THWS Wuerzburg-Schweinfurt", prog: "M.Sc. Artificial Intelligence",
     city: "Wuerzburg, Bavaria", field: ["AI"], degree: "Master's (taught)", duration: "1.5 years (3 semesters)",
     intake: "Summer semester only (March)",
@@ -101,7 +108,7 @@ const PROGRAMS = [
     ],
   },
   {
-    id: "hildesheim-da", sec: "de", country: "Germany", flag: "🇩🇪",
+    id: "hildesheim-da", rank: { world: null, country: "Not in the THE world ranking", sort: null }, sec: "de", country: "Germany", flag: "🇩🇪",
     uni: "University of Hildesheim", prog: "M.Sc. Data Analytics (International Master)",
     city: "Hildesheim, Lower Saxony", field: ["Data"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
     intake: "April and October",
@@ -132,7 +139,7 @@ const PROGRAMS = [
     ],
   },
   {
-    id: "dortmund-ds", sec: "de", country: "Germany", flag: "🇩🇪",
+    id: "dortmund-ds", rank: { world: "451 to 500", country: "=41 of 55 in Germany", sort: 451 }, sec: "de", country: "Germany", flag: "🇩🇪",
     uni: "TU Dortmund University", prog: "M.Sc. Data Science",
     city: "Dortmund, North Rhine-Westphalia", field: ["Data"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
     intake: "April and October",
@@ -163,7 +170,7 @@ const PROGRAMS = [
     ],
   },
   {
-    id: "passau-cs", sec: "de", country: "Germany", flag: "🇩🇪",
+    id: "passau-cs", rank: { world: "601 to 650", country: "=47 of 55 in Germany", sort: 601 }, sec: "de", country: "Germany", flag: "🇩🇪",
     uni: "University of Passau", prog: "M.Sc. Computer Science",
     city: "Passau, Bavaria", field: ["CS"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
     intake: "April and October",
@@ -193,7 +200,7 @@ const PROGRAMS = [
     ],
   },
   {
-    id: "hhu-aids", sec: "de", country: "Germany", flag: "🇩🇪",
+    id: "hhu-aids", rank: { world: "=284", country: "=27 of 55 in Germany", sort: 284 }, sec: "de", country: "Germany", flag: "🇩🇪",
     uni: "Heinrich Heine University Duesseldorf (HHU)", prog: "M.Sc. Artificial Intelligence and Data Science",
     city: "Duesseldorf, North Rhine-Westphalia", field: ["AI", "Data"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
     intake: "Winter semester only (October)",
@@ -222,7 +229,7 @@ const PROGRAMS = [
 
   /* ============================ USA AND CANADA ============================ */
   {
-    id: "mun-cs", sec: "na", country: "Canada", flag: "🇨🇦",
+    id: "mun-cs", rank: { world: "551 to 600", country: "=20 of 34 in Canada", sort: 551 }, sec: "na", country: "Canada", flag: "🇨🇦",
     uni: "Memorial University of Newfoundland (MUN)", prog: "M.Sc. Computer Science (thesis)",
     city: "St. John's, Newfoundland", field: ["CS", "AI"], degree: "Research master's", duration: "2 years",
     intake: "September and January",
@@ -258,7 +265,7 @@ const PROGRAMS = [
     ],
   },
   {
-    id: "vt-cs", sec: "na", country: "USA", flag: "🇺🇸",
+    id: "vt-cs", rank: { world: "=277", country: "62 in the USA", sort: 277 }, sec: "na", country: "USA", flag: "🇺🇸",
     uni: "Virginia Tech", prog: "M.S. Computer Science (research track) or Ph.D. CS",
     city: "Blacksburg, Virginia", field: ["CS", "AI"], degree: "Research master's / PhD", duration: "MS 2 years, PhD 5 years",
     intake: "Fall (August)",
@@ -290,7 +297,7 @@ const PROGRAMS = [
     ],
   },
   {
-    id: "asu-ai", sec: "na", country: "USA", flag: "🇺🇸",
+    id: "asu-ai", rank: { world: "200", country: "53 in the USA", sort: 200 }, sec: "na", country: "USA", flag: "🇺🇸",
     uni: "Arizona State University", prog: "Ph.D. Artificial Intelligence (or Ph.D. CS)",
     city: "Tempe, Arizona", field: ["AI"], degree: "PhD", duration: "4 to 5 years",
     intake: "Fall (August)",
@@ -322,7 +329,7 @@ const PROGRAMS = [
     ],
   },
   {
-    id: "gt-phd", sec: "na", country: "USA", flag: "🇺🇸",
+    id: "gt-phd", rank: { world: "49", country: "22 in the USA", sort: 49 }, sec: "na", country: "USA", flag: "🇺🇸",
     uni: "Georgia Institute of Technology", prog: "Ph.D. Computer Science or Ph.D. Machine Learning",
     city: "Atlanta, Georgia", field: ["AI", "CS"], degree: "PhD (MS on the way)", duration: "5 years",
     intake: "Fall (August)",
@@ -347,7 +354,7 @@ const PROGRAMS = [
     docs: ["MOI letter or transcript note", "3 strong recommendation letters", "Research statement of purpose", "Academic CV", "Writing sample (diffusion model report)"],
   },
   {
-    id: "lakehead-ai", sec: "na", country: "Canada", flag: "🇨🇦",
+    id: "lakehead-ai", rank: { world: "1001 to 1200", country: "=28 of 34 in Canada", sort: 1001 }, sec: "na", country: "Canada", flag: "🇨🇦",
     uni: "Lakehead University", prog: "M.Sc. Computer Science, AI specialization (thesis)",
     city: "Thunder Bay, Ontario", field: ["AI", "CS"], degree: "Research master's", duration: "2 years",
     intake: "September",
@@ -374,7 +381,7 @@ const PROGRAMS = [
 
   /* ============================ WORLDWIDE ============================ */
   {
-    id: "hkust-mphil", sec: "world", country: "Hong Kong", flag: "🇭🇰",
+    id: "hkust-mphil", rank: { world: "58", country: "3 of 8 in Hong Kong", sort: 58 }, sec: "world", country: "Hong Kong", flag: "🇭🇰",
     uni: "HKUST (Postgraduate Studentship)", prog: "MPhil Computer Science and Engineering",
     city: "Hong Kong", field: ["AI", "CS"], degree: "Research master's", duration: "2 years",
     intake: "Fall (September)",
@@ -398,7 +405,7 @@ const PROGRAMS = [
     docs: ["Email HKUST CSE professors in ML", "MOI letter from Pharos", "2 to 3 recommendation letters", "Research statement / proposal", "Academic CV", "Transcript and degree in English"],
   },
   {
-    id: "sh-elte", sec: "world", country: "Hungary", flag: "🇭🇺",
+    id: "sh-elte", rank: { world: "801 to 1000", country: "About 3rd in Hungary (same band as Debrecen)", sort: 801 }, sec: "world", country: "Hungary", flag: "🇭🇺",
     uni: "Stipendium Hungaricum + ELTE Budapest", prog: "M.Sc. Computer Science, AI specialization (also Data Science)",
     city: "Budapest", field: ["AI", "CS", "Data"], degree: "Master's (taught)", duration: "2 years",
     intake: "September",
@@ -422,7 +429,7 @@ const PROGRAMS = [
     docs: ["Stipendium Hungaricum online application", "Nomination from the Egyptian ministry", "Motivation letter", "2 recommendation letters", "Medical certificate", "MOI letter from Pharos", "Degree and transcript in English", "Prepare for the ELTE interview"],
   },
   {
-    id: "iyt-italy", sec: "world", country: "Italy", flag: "🇮🇹",
+    id: "iyt-italy", rank: { world: null, country: "Depends on the Italian university you choose", sort: null }, sec: "world", country: "Italy", flag: "🇮🇹",
     uni: "Invest Your Talent in Italy", prog: "English-taught AI / data / computer engineering master's from the program list",
     city: "Partner universities in Italy", field: ["AI", "Data", "CS"], degree: "Master's (taught)", duration: "2 years",
     intake: "September",
@@ -446,7 +453,7 @@ const PROGRAMS = [
     docs: ["Pick an English AI / data master's on the IYT list", "Apply to that university", "IYT online application", "MOI certificate from Pharos", "Motivation letter", "Recommendation letters", "CV"],
   },
   {
-    id: "csc-hust", sec: "world", country: "China", flag: "🇨🇳",
+    id: "csc-hust", rank: { world: "=191", country: "15 in China", sort: 191 }, sec: "world", country: "China", flag: "🇨🇳",
     uni: "Chinese Government Scholarship (CSC) at HUST", prog: "Master's in Computer Science and Technology / AI (English-taught)",
     city: "Wuhan", field: ["AI", "CS"], degree: "Master's", duration: "2 to 3 years",
     intake: "September",
@@ -470,7 +477,7 @@ const PROGRAMS = [
     docs: ["CSC online application", "HUST online application", "Study plan / research proposal", "2 recommendation letters", "Foreigner physical examination form", "MOI letter", "Notarized degree and transcript"],
   },
   {
-    id: "hbku-ds", sec: "world", country: "Qatar", flag: "🇶🇦",
+    id: "hbku-ds", rank: { world: "=126", country: "1 in Qatar", sort: 126 }, sec: "world", country: "Qatar", flag: "🇶🇦",
     uni: "Hamad Bin Khalifa University (HBKU)", prog: "MS Data Science and Engineering",
     city: "Doha", field: ["Data", "AI"], degree: "Master's", duration: "2 years",
     intake: "Fall (August)",
