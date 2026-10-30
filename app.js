@@ -66,9 +66,14 @@
   };
   const engChip = (p) => p.eng.s === "yes"
     ? '<span class="chip good">MOI accepted, no IELTS</span>'
+    : p.eng.s === "ielts" ? '<span class="chip pay">IELTS / test needed</span>'
     : '<span class="chip warn">MOI: email to confirm</span>';
+  const ENG_OPTS = ["All", "MOI (no IELTS)", "MOI confirmed", "IELTS / test needed"];
+  const engOk = (p) => F.eng === "All" || (F.eng === "MOI (no IELTS)" && p.eng.s !== "ielts") || (F.eng === "MOI confirmed" && p.eng.s === "yes") || (F.eng === "IELTS / test needed" && p.eng.s === "ielts");
+  const engBtns = () => ENG_OPTS.map((o) => `<button class="fbtn ${F.eng === o ? "on" : ""}" data-f="eng" data-v="${esc(o)}">${esc(o)}</button>`).join("");
   const wr = (w) => (/^=/.test(w) ? "#" + w.slice(1) + " (tied)" : /^\d+$/.test(w) ? "#" + w : w);
-  const rankChips = (p) => p.rank.world
+  const hasWorld = (p) => !!p.rank.world && /^[=\d]/.test(p.rank.world);
+  const rankChips = (p) => hasWorld(p)
     ? `<span class="chip rank-chip">🌍 World ${esc(wr(p.rank.world))}</span><span class="chip rank-chip">🏅 #${esc(p.rank.country)}</span>`
     : `<span class="chip plain">🏅 ${esc(p.rank.country)}</span>`;
   const statusOf = (id) => store.get("status_" + id, "Not started");
@@ -117,7 +122,7 @@
       <h1>${esc(prof().name)}'s master's options for 2027</h1>
       <p class="lead">${esc(DS.lead)}</p>
       <div class="stats">
-        <div class="stat"><b>${PROGRAMS.length}</b><span>programs I can apply to with MOI</span></div>
+        <div class="stat"><b>${PROGRAMS.filter((p) => p.eng.s !== "ielts").length}</b><span>programs with MOI (no IELTS)${PROGRAMS.some((p) => p.eng.s === "ielts") ? " + " + PROGRAMS.filter((p) => p.eng.s === "ielts").length + " more with IELTS" : ""}</span></div>
         <div class="stat"><b>${upcoming[0] ? daysLeft(upcoming[0].d.d) + " days" : "None"}</b><span>to the next deadline${upcoming[0] ? " (" + esc(upcoming[0].p.uni.split(" (")[0]) + ")" : ""}</span></div>
         <div class="stat"><b>${cp.done}/${cp.total}</b><span>checklist items done</span></div>
         <div class="stat"><b>${applied}</b><span>applications sent</span></div>
@@ -137,15 +142,16 @@
     else right = `<span class="chip">Uni cost ${money(c.uni, p.cur)} total</span>`;
     return `<li><a href="#p/${p.id}"><div class="rank">${p[rk]}</div>
       <div><div class="t1">${p.flag} ${esc(p.uni)}</div><div class="t2">${esc(p.prog)}</div></div>
-      <div class="right">${right}<div class="muted" style="margin-top:4px">${p.rank.world ? "World " + esc(wr(p.rank.world)) + " · " : ""}${chanceTxt(p)}</div></div></a></li>`;
+      <div class="right">${right}<div class="muted" style="margin-top:4px">${hasWorld(p) ? "World " + esc(wr(p.rank.world)) + " · " : ""}${chanceTxt(p)}</div></div></a></li>`;
   }
   const chanceTxt = (p) => "Chance: " + esc(p.chance);
 
   function pageBest() {
-    const list = [...PROGRAMS].sort((a, b) => a.rankAll - b.rankAll);
+    const list = [...PROGRAMS].filter(engOk).sort((a, b) => a.rankAll - b.rankAll);
     return `
       <h1>Best for me, ranked</h1>
-      <p class="lead">Every program here accepts an MOI letter (or needs only a quick email to confirm). Ranked by my real chance of getting in, how much money I need, and how close it is to AI.</p>
+      <p class="lead">Programs that accept an MOI letter come first. Programs that need IELTS (or another English test) are marked with a red chip. Use the buttons to show only one kind.</p>
+      <div class="filters"><div class="frow"><label>English</label>${engBtns()}</div></div>
       <div class="note">${esc(DS.bestNote)}</div>
       <div class="grid">${list.map((p) => card(p, "rankAll")).join("")}</div>
       <h2>🌍 Same programs by university ranking</h2>
@@ -153,7 +159,7 @@
       <div class="card" style="overflow-x:auto"><table class="money rank-table"><tr><td><b>University</b></td><td><b>World</b></td><td><b>In its country</b></td></tr>
       ${[...PROGRAMS].filter((p, i, arr) => arr.findIndex((q) => q.uni === p.uni) === i).sort((a, b) => (a.rank.sort || 9999) - (b.rank.sort || 9999)).map((p) => `<tr><td><a href="#p/${p.id}">${p.flag} ${esc(p.uni)}</a></td><td>${p.rank.world ? esc(wr(p.rank.world)) : "Not ranked"}</td><td>${esc(p.rank.country)}</td></tr>`).join("")}
       </table></div>
-      <h2>Also good, but I would need an English test first</h2>
+      <h2>More options that need an English test or a check</h2>
       <p class="muted">If I take IELTS or Duolingo, these open up too. Most are very well funded.</p>
       ${needsTestTable(NEEDS_TEST)}`;
   }
@@ -186,7 +192,7 @@
       if (F.money === "Stipend" && !p.stipend) return false;
       if (F.money === "No tuition" && !p.tuitionFree) return false;
       if (F.money === "No blocked account" && p.blocked) return false;
-      if (F.eng === "MOI confirmed" && p.eng.s !== "yes") return false;
+      if (!engOk(p)) return false;
       if (F.apply !== "All" && !isDirect(p)) return false;
       return true;
     });
@@ -203,7 +209,7 @@
         <div class="frow"><label>Country</label>${btns("country", countries)}</div>
         <div class="frow"><label>Field</label>${btns("field", ["All", ...DS.fields])}</div>
         <div class="frow"><label>Money</label>${btns("money", ["All", "Stipend", "No tuition", "No blocked account"])}</div>
-        <div class="frow"><label>English</label>${btns("eng", ["All", "MOI confirmed"])}</div>
+        <div class="frow"><label>English</label>${engBtns()}</div>
         <div class="frow"><label>Apply</label>${btns("apply", ["All", "Directly (no uni-assist)"])}</div>
         <div class="frow"><label>Sort by</label>
           <select id="sort"><option value="rank" ${F.sort === "rank" ? "selected" : ""}>Best for me</option><option value="deadline" ${F.sort === "deadline" ? "selected" : ""}>Nearest deadline</option><option value="bring" ${F.sort === "bring" ? "selected" : ""}>Least money to bring</option><option value="world" ${F.sort === "world" ? "selected" : ""}>Best world ranking</option></select>
