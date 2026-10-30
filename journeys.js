@@ -125,6 +125,20 @@ const FUNDING = {
     "Apply on Apply2B in Round II (by 26 Jan 2027) and pay EUR 100",
     "Fill the Bocconi4Access to Education 2027-2028 form for the AI Scholarship",
     "Get the result (4 Mar 2027 for Round II) together with any award" ] },
+  "lmu-stats": { how: "none", text: "No scholarship needed: LMU has no tuition, even for non-EU students. Admission is enough; you live on your blocked account (or DAAD, see the Money guide).", apply: [
+    "Email the Statistics department your transcript to confirm your statistics / data science focus",
+    "Ask Pharos for the official MOI letter",
+    "Apply on the department portal (April 2027 start: by 15 Nov 2026; October 2027 start: 1 Apr to 15 May 2027)",
+    "Apply to the LMU International Office in parallel (by 15 Jan or 15 Jul)",
+    "If you get 10 to 17 points: do the written test (2 weeks) and the 15-minute interview",
+    "Receive the admission letter" ] },
+  "lmu-ds": { how: "none", text: "No scholarship needed: LMU has no tuition. Admission is enough; you live on your blocked account (or DAAD).", apply: [
+    "Email m-datascience@lmu.de to ask if your MOI letter is accepted (otherwise take IELTS)",
+    "Write the Data Science essay (max 1,000 words)",
+    "Apply online when the portal opens (about late April to 1 Jun 2027)",
+    "Apply to the LMU International Office in parallel (by 15 Jul)",
+    "Video interview (end of June)",
+    "Final result by email (mid July)" ] },
   "tum-inf": { how: "partial", text: "There is no full scholarship: tuition is EUR 4,000 to 6,000 per semester. TUM gives merit tuition waivers for the first 2 semesters to top-ranked new master's students (you apply separately in the TUM scholarship portal with your application number), and need-based waivers in hardship. Living costs come from your blocked account (or DAAD, see the Money guide).", apply: [
     "Ask Pharos for an official confirmation that the bachelor's was taught in English, and an official class ranking certificate",
     "Request a uni-assist VPD for TUM (4 to 6 weeks, EUR 75)",
