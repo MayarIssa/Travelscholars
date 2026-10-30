@@ -2,7 +2,21 @@
    FUNDING[id].how: "auto" = comes with admission, "separate" = separate scholarship application,
    "none" = no scholarship needed (no tuition, you live on your own money), "partial" = possible but not guaranteed. */
 
+const FB_STEPS = [
+  "Take an English test: IELTS 6.5, TOEFL iBT 80 or Duolingo 105",
+  "Ask 3 professors / managers for recommendation letters on the Fulbright reference form",
+  "Write your personal statement yourself (no plagiarism, no undisclosed AI use)",
+  "Apply online at fulbright-egypt.org when the AY2028-2029 round opens (February 2027) and before its deadline (around end of May 2027)",
+  "Interview if shortlisted",
+  "If nominated: orientation, then TOEFL iBT and GRE / GMAT",
+  "Fulbright places you at US universities; choose your university",
+  "Pre-departure orientation",
+];
+
 const FUNDING = {
+  "fulbright-us": { how: "separate", text: "Fulbright IS the scholarship: you apply to the Fulbright Commission in Egypt (not to universities first). If you are nominated, Fulbright helps place you at US universities and pays tuition, stipend, travel and health benefits.", apply: FB_STEPS },
+  "fulbright-aya": { how: "separate", text: "Fulbright IS the scholarship: you apply to the Fulbright Commission in Egypt (not to universities first). If you are nominated, Fulbright helps place you at US universities and pays tuition, stipend, travel and health benefits.", apply: FB_STEPS },
+
   /* ---------- Mayar and Rodayna ---------- */
   "passau-aie": { how: "none", text: "There is no scholarship to apply for: the university has no tuition, so admission alone is enough. You pay only the semester fee and live on your blocked account money.", apply: [
     "Create a uni-assist account and upload: degree, transcript, MOI letter, module descriptions, CV, project abstract, passport",
@@ -237,6 +251,15 @@ const FUNDING = {
 
 /* What happens after admission, until you travel and settle in */
 const JOURNEY = {
+  "USA (Fulbright J-1)": [
+    "Accept the Fulbright grant and the university admission",
+    "Receive the DS-2019 form (J-1 visa document) through Fulbright",
+    "Fill the DS-160 and attend the visa interview at the US Embassy in Cairo (Fulbright guides you through the fees)",
+    "Book housing near the university",
+    "Fly to the US (Fulbright covers travel)",
+    "After arrival: check in with the international office and the Fulbright program contact",
+    "After the degree: plan for the 2-year home residency rule that usually applies to Fulbright J-1 grantees",
+  ],
   Germany: [
     "Accept the admission and do the online enrolment steps the university asks for",
     "Open the blocked account (Expatrio, Fintiba or Coracle) and transfer EUR 11,904; keep the confirmation",
@@ -347,6 +370,6 @@ function stepsFor(p) {
   return [
     ...before.map((t) => ({ phase: "Before applying", t })),
     ...((f && f.apply) || ["Apply on the official page (see link above)"]).map((t) => ({ phase: "Apply and get the money", t })),
-    ...(JOURNEY[p.country] || ["Accept the offer", "Apply for the student visa", "Book housing and the flight"]).map((t) => ({ phase: "After admission until you settle in", t })),
+    ...(JOURNEY[p.journey || p.country] || ["Accept the offer", "Apply for the student visa", "Book housing and the flight"]).map((t) => ({ phase: "After admission until you settle in", t })),
   ];
 }

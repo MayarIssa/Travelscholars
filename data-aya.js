@@ -212,6 +212,35 @@ const PROGRAMS_AYA = [
 
   /* ============================ IELTS / TEST NEEDED ============================ */
   {
+    id: "fulbright-aya", rank: { world: "Varies by US university", country: "You are placed at a US university chosen with Fulbright", sort: null }, sec: "us", country: "USA", flag: "🇺🇸", journey: "USA (Fulbright J-1)",
+    uni: "Fulbright Egyptian Student Program", prog: "Master's in microbiology, quality, environment or food science at a US university",
+    city: "A US university (placed by Fulbright)", field: ["Biology", "Quality", "Environment", "Food"], degree: "Master's (up to 2 years)", duration: "Up to 2 years",
+    intake: "August / September",
+    deadlines: [
+      { t: "AY2027-2028 round: deadline was 31 May 2026 (closed)", d: "2026-05-31" },
+      { t: "AY2028-2029 round: applications open February 2027 (deadline expected around the end of May 2027; you would travel in summer 2028)", d: null },
+    ],
+    applyVia: "Fulbright Commission in Egypt online application (fulbright-egypt.org)",
+    eng: { s: "ielts", t: "An English test score is required: IELTS 6.5, TOEFL iBT 80, TOEFL ITP 550, Duolingo 105, or an Egyptian university English proficiency test with 550. MOI is not accepted." },
+    german: "",
+    academic: "Egyptian citizen living in Egypt during the whole process. Bachelor's grade at least 'Very Good' for sciences (Good for humanities). All fields are eligible. 3 recommendation letters, personal statement, transcripts, national ID, photo. Shortlisted applicants are interviewed; nominees then take the TOEFL iBT and GRE / GMAT and Fulbright places them at US universities.",
+    chance: "Low to Medium", rankAll: 13, rankSec: 1,
+    accept: "Very competitive national selection with interviews. No official acceptance rate. Applicants with little or no previous US experience are preferred.",
+    why: "Fully funded US master's for Egyptians in any field: tuition, stipend, travel and health benefits. Your 3.5 GPA (Excellent with Honor) meets the 'Very Good' minimum for sciences, and your quality and environmental work make a strong story.",
+    watch: "The 2027 round already closed (31 May 2026), so this is for a 2028 start. You need an English test (IELTS 6.5 / TOEFL 80 / Duolingo 105). Write the personal statement yourself: Fulbright disqualifies plagiarism and undisclosed AI use. Fulbright grantees on a J-1 visa usually must return to Egypt for 2 years after the degree (check the rule in your grant terms).",
+    link: "https://fulbright-egypt.org/program/student",
+    cur: "USD", tuitionFree: true,
+    tuitionLine: "You don't pay anything for the university: Fulbright pays tuition, plus a stipend, travel, health benefits and other allowances.",
+    uniLines: [["Application fee", 0]],
+    other: [["English test (IELTS / TOEFL / Duolingo, est.)", 250, true]],
+    living: { perMonth: 0, months: 24, est: true, note: "Living costs are covered by the Fulbright stipend; the amount depends on the US city." },
+    stipend: { total: null, text: "You get a monthly Fulbright stipend plus tuition, travel, health benefits and other allowances. The amount depends on the city and is in your grant terms." },
+    blocked: null,
+    bring: [["English test (est.)", 250, true], ["Pocket money for the first weeks (est.)", 1000, true]],
+    docs: ["English test score (IELTS 6.5 / TOEFL 80 / Duolingo 105)", "Online application (opens February 2027)", "3 recommendation letters on the Fulbright reference form", "Personal statement (your own words)", "Transcripts in English", "National ID and personal photo", "Prepare for the interview"],
+  },
+
+  {
     id: "szeged-bio", rank: { world: "1001 to 1200", country: "About 5th in Hungary (behind Semmelweis, Obuda, ELTE, Debrecen)", sort: 1001 }, sec: "hu", country: "Hungary", flag: "🇭🇺",
     uni: "University of Szeged (Stipendium Hungaricum)", prog: "Biology M.Sc. (Molecular, Immuno- and Microbiology)",
     city: "Szeged", field: ["Biology"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
@@ -391,6 +420,7 @@ const DATASETS = {
       hu: { name: "Hungary", sub: "Stipendium Hungaricum: free tuition, stipend and dorm. MOI certificate accepted", icon: "🇭🇺" },
       eu: { name: "Europe", sub: "Germany (no tuition), Italy and Erasmus Mundus scholarships", icon: "🇪🇺" },
       asia: { name: "Asia", sub: "Chinese Government Scholarship", icon: "🌏" },
+      us: { name: "USA", sub: "Fulbright: fully funded, English test needed", icon: "🇺🇸" },
     },
     needsTest: NEEDS_TEST_AYA, excluded: [], checklist: CHECKLIST_AYA,
     fields: ["Biology", "Quality", "Environment", "Food", "Business"],

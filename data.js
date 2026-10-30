@@ -772,6 +772,35 @@ const PROGRAMS = [
 
   /* ============================ IELTS / TEST NEEDED ============================ */
   {
+    id: "fulbright-us", rank: { world: "Varies by US university", country: "You are placed at a US university chosen with Fulbright", sort: null }, sec: "na", country: "USA", flag: "🇺🇸", journey: "USA (Fulbright J-1)",
+    uni: "Fulbright Egyptian Student Program", prog: "Master's in CS / AI / Data Science at a US university",
+    city: "A US university (placed by Fulbright)", field: ["AI", "CS", "Data"], degree: "Master's (up to 2 years)", duration: "Up to 2 years",
+    intake: "August / September",
+    deadlines: [
+      { t: "AY2027-2028 round: deadline was 31 May 2026 (closed)", d: "2026-05-31" },
+      { t: "AY2028-2029 round: applications open February 2027 (deadline expected around the end of May 2027; you would travel in summer 2028)", d: null },
+    ],
+    applyVia: "Fulbright Commission in Egypt online application (fulbright-egypt.org)",
+    eng: { s: "ielts", t: "An English test score is required: IELTS 6.5, TOEFL iBT 80, TOEFL ITP 550, Duolingo 105, or an Egyptian university English proficiency test with 550. MOI is not accepted." },
+    german: "",
+    academic: "Egyptian citizen living in Egypt during the whole process. Bachelor's grade at least 'Very Good' for sciences (Good for humanities). All fields are eligible. 3 recommendation letters, personal statement, transcripts, national ID, photo. Shortlisted applicants are interviewed; nominees then take the TOEFL iBT and GRE / GMAT and Fulbright places them at US universities.",
+    chance: "Low to Medium", rankAll: 30, rankSec: 7,
+    accept: "Very competitive national selection with interviews. No official acceptance rate. Applicants with little or no previous US experience are preferred.",
+    why: "Fully funded US master's for Egyptians in any field: tuition, stipend, travel and health benefits. Your 3.76 GPA meets the 'Very Good' minimum for sciences.",
+    watch: "The 2027 round already closed (31 May 2026), so this is for a 2028 start. You need an English test (IELTS 6.5 / TOEFL 80 / Duolingo 105). Write the personal statement yourself: Fulbright disqualifies plagiarism and undisclosed AI use. Fulbright grantees on a J-1 visa usually must return to Egypt for 2 years after the degree (check the rule in your grant terms).",
+    link: "https://fulbright-egypt.org/program/student",
+    cur: "USD", tuitionFree: true,
+    tuitionLine: "You don't pay anything for the university: Fulbright pays tuition, plus a stipend, travel, health benefits and other allowances.",
+    uniLines: [["Application fee", 0]],
+    other: [["English test (IELTS / TOEFL / Duolingo, est.)", 250, true]],
+    living: { perMonth: 0, months: 24, est: true, note: "Living costs are covered by the Fulbright stipend; the amount depends on the US city." },
+    stipend: { total: null, text: "You get a monthly Fulbright stipend plus tuition, travel, health benefits and other allowances. The amount depends on the city and is in your grant terms." },
+    blocked: null,
+    bring: [["English test (est.)", 250, true], ["Pocket money for the first weeks (est.)", 1000, true]],
+    docs: ["English test score (IELTS 6.5 / TOEFL 80 / Duolingo 105)", "Online application (opens February 2027)", "3 recommendation letters on the Fulbright reference form", "Personal statement (your own words)", "Transcripts in English", "National ID and personal photo", "Prepare for the interview"],
+  },
+
+  {
     id: "usask-cs", rank: { world: "351 to 375", country: "#411 in the world in QS 2027", sort: 351 }, sec: "na", country: "Canada", flag: "🇨🇦",
     uni: "University of Saskatchewan", prog: "M.Sc. Computer Science (thesis)",
     city: "Saskatoon, Saskatchewan", field: ["CS", "AI"], degree: "Research master's", duration: "About 20 months",
@@ -903,7 +932,6 @@ const NEEDS_TEST = [
   { sec: "na", name: "University of Toronto, M.Sc. CS (research)", money: "CAD 52,209 package for 17 months", rule: "Egypt needs a test.", deadline: "Check", link: "https://web.cs.toronto.edu/graduate/english-language-proficiency" },
   { sec: "na", name: "UBC Okanagan, M.Sc. CS", money: "At least CAD 24,000", rule: "Test unless degree from listed countries.", deadline: "Check", link: "https://cmps.ok.ubc.ca/wp-content/uploads/sites/132/2024/04/COSCGradProgram-Feb-2024.pdf" },
   { sec: "na", name: "York University, M.Sc. CS (thesis)", money: "About CAD 25,000 per year", rule: "Test or country exemption.", deadline: "Check", link: "https://www.profellow.com/fellowships/fully-funded-masters-programs-in-computer-science/" },
-  { sec: "na", name: "Fulbright Egypt (any US master's)", money: "Tuition, stipend and travel", rule: "English test through AMIDEAST.", deadline: "Check the Fulbright Egypt website", link: "" },
   { sec: "world", name: "Erasmus Mundus DEAI (Data Eng. and AI)", money: "Tuition + monthly stipend", rule: "B2 proof (IELTS 5.5 / TOEFL 72).", deadline: "About Jan 2027", link: "https://deai.ulb.be/" },
   { sec: "world", name: "CUHK (Hong Kong), MPhil CSE", money: "About HKD 19,100 per month", rule: "Exemption not confirmed.", deadline: "Check", link: "https://www.cse.cuhk.edu.hk/admission/mphil-phd/early-admission/" },
   { sec: "ch", name: "Finland: Aalto, Helsinki, Tampere", money: "Tuition waivers are partial (Tampere: no 100% waivers)", rule: "English-taught degree only counts from listed countries; Egypt is not listed, so IELTS / TOEFL needed.", deadline: "Early January 2027", link: "https://aalto.fi/en/admission-services/language-requirements-in-masters-admissions" },
