@@ -8,7 +8,7 @@ const SH_OTHER = [["Visa / residence permit (est.)", 25000, true], ["Flight Cair
 const SH_LIVING = { perMonth: 120000, months: 24, est: true, note: "Debrecen estimate for food, transport and phone with the free dorm. Debrecen is cheaper than Budapest." };
 const SH_BRING = [["Visa / residence permit", 25000, true], ["Flight", 120000, true], ["Setup money", 80000, true], ["Top-up for the first 3 months (living minus stipend)", 230000, true]];
 const SH_APPLY = "Stipendium Hungaricum online portal (choose the University of Debrecen program) + nomination by Egypt's Cultural and Missions Sector (Ministry of Higher Education)";
-const DEB_RANK = { world: "801 to 1000", country: "About 3rd to 4th in Hungary (THE 2026 list)", sort: 801 };
+const DEB_RANK = { world: "801 to 1000", country: "About 3rd to 4th in Hungary (same band as ELTE, THE 2027)", sort: 801 };
 const DEB_ENG = { s: "yes", t: "MOI accepted: the University of Debrecen lists a 'Certificate on English medium of instruction' as valid B2 proof. No IELTS needed." };
 
 const PROGRAMS_AYA = [
@@ -136,7 +136,7 @@ const PROGRAMS_AYA = [
     docs: ["MOIN online application", "MOI letter: whole B.Sc. taught and examined in English", "Transcript showing at least 3 credit points in Ecology", "One-page motivation letter in English", "CV", "Degree certificate in English", "Email the program to confirm the MOI exemption"],
   },
   {
-    id: "iyt-aya", rank: { world: null, country: "Depends on the Italian university you choose", sort: null }, sec: "eu", country: "Italy", flag: "🇮🇹",
+    id: "iyt-aya", rank: { world: "Varies by university", country: "Examples: Bologna #111, Politecnico di Milano #157, Padova #224 (THE 2027)", sort: null }, sec: "eu", country: "Italy", flag: "🇮🇹",
     uni: "Invest Your Talent in Italy", prog: "English-taught master's from the program list (food, environment, quality or management)",
     city: "Partner universities in Italy", field: ["Food", "Environment", "Quality", "Business"], degree: "Master's (taught)", duration: "2 years",
     intake: "September",
@@ -160,7 +160,7 @@ const PROGRAMS_AYA = [
     docs: ["Pick an English master's on the IYT list (food, environment, quality, management)", "Apply to that university", "IYT online application", "MOI certificate", "Motivation letter", "Recommendation letters", "CV"],
   },
   {
-    id: "me3-4s", rank: { world: null, country: "Consortium led by IMT Atlantique (France)", sort: null }, sec: "eu", country: "Europe (several countries)", flag: "🇪🇺",
+    id: "me3-4s", rank: { world: "451 to 500", country: "IMT Atlantique, the coordinator (France)", sort: 451 }, sec: "eu", country: "Europe (several countries)", flag: "🇪🇺",
     uni: "Erasmus Mundus ME3-4S", prog: "Management and Engineering of Environment and Energy for a Sustainable Future",
     city: "France and partner countries", field: ["Environment", "Business"], degree: "Erasmus Mundus joint master's", duration: "2 years",
     intake: "September 2027 (first intake)",
@@ -212,7 +212,7 @@ const PROGRAMS_AYA = [
 
   /* ============================ IELTS / TEST NEEDED ============================ */
   {
-    id: "szeged-bio", rank: { world: "1001 to 1200", country: "Hungarian university (THE 2027)", sort: 1001 }, sec: "hu", country: "Hungary", flag: "🇭🇺",
+    id: "szeged-bio", rank: { world: "1001 to 1200", country: "About 5th in Hungary (behind Semmelweis, Obuda, ELTE, Debrecen)", sort: 1001 }, sec: "hu", country: "Hungary", flag: "🇭🇺",
     uni: "University of Szeged (Stipendium Hungaricum)", prog: "Biology M.Sc. (Molecular, Immuno- and Microbiology)",
     city: "Szeged", field: ["Biology"], degree: "Master's (taught)", duration: "2 years (4 semesters)",
     intake: "September",
@@ -257,7 +257,7 @@ const PROGRAMS_AYA = [
     docs: ["C1 English certificate", "MarMic online application", "Motivation letter", "Recommendation letters", "CV", "Degree and transcript in English"],
   },
   {
-    id: "idoh", rank: { world: "Not checked", country: "Erasmus Mundus consortium", sort: null }, sec: "eu", country: "Europe (several countries)", flag: "🇪🇺",
+    id: "idoh", rank: { world: "1001 to 1200", country: "University of Tours, the coordinator (France)", sort: 1001 }, sec: "eu", country: "Europe (several countries)", flag: "🇪🇺",
     uni: "Erasmus Mundus IDOH", prog: "Infectious Diseases and One Health",
     city: "Several European cities", field: ["Biology"], degree: "Erasmus Mundus joint master's", duration: "2 years",
     intake: "September",
@@ -282,7 +282,7 @@ const PROGRAMS_AYA = [
     docs: ["English certificate (or ask about MOI)", "IDOH online application (1 Dec to 31 Jan)", "Motivation letter", "Recommendation letters", "Europass CV", "Degree and transcript"],
   },
   {
-    id: "kaust-bio", rank: { world: "Not checked", country: "Top in Saudi Arabia (THE Arab rankings)", sort: null }, sec: "asia", country: "Saudi Arabia", flag: "🇸🇦",
+    id: "kaust-bio", rank: { world: "103", country: "1st in THE Arab University Rankings (3 years in a row); ARWU 2026: 201 to 300", sort: 103, src: "US News Best Global Universities 2027 (KAUST is not in the THE or QS overall tables)" }, sec: "asia", country: "Saudi Arabia", flag: "🇸🇦",
     uni: "KAUST", prog: "MS Bioscience (or Environmental Science and Engineering)",
     city: "Thuwal", field: ["Biology", "Environment"], degree: "Master's", duration: "About 1.5 to 2 years",
     intake: "August",

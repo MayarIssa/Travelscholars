@@ -112,6 +112,19 @@ const FUNDING = {
     "Pay and validate the application by 15 Dec 2026",
     "Make sure referees upload letters within one week after the deadline",
     "Receive the admission and fellowship decision" ] },
+  "polimi-cse": { how: "separate", text: "Separate form in the same portal: you apply to the master's in the Early bird window (fee paid between 1 Oct and 1 Dec 2026), then fill the merit scholarship form on Online Services. If you win, tuition is waived and you get up to EUR 10,000 per year.", apply: [
+    "Create an account on Politecnico di Milano Online Services",
+    "Apply to M.Sc. Computer Science and Engineering and pay the admission fee by 1 Dec 2026 (Early bird)",
+    "Upload the Pharos document certifying English as the teaching language, degree, transcript, CV",
+    "Fill the separate merit scholarship form (expected by 15 Dec 2026)",
+    "Receive the admission and scholarship results",
+    "Also apply for the Lombardy regional grant (DSU) for housing if you need it" ] },
+  "bocconi-ai": { how: "partial", text: "Graduate Merit Awards (full tuition waiver) are considered automatically with your admission, and the AI Scholarship (100%, 60% or 20% off tuition) is decided with the Bocconi4Access to Education form. Neither pays a stipend, so you still need living money.", apply: [
+    "Email Bocconi admissions to ask if your English-taught degree counts as English proof",
+    "Take the GMAT / GRE or the Bocconi online test",
+    "Apply on Apply2B in Round II (by 26 Jan 2027) and pay EUR 100",
+    "Fill the Bocconi4Access to Education 2027-2028 form for the AI Scholarship",
+    "Get the result (4 Mar 2027 for Round II) together with any award" ] },
   "usask-cs": { how: "auto", text: "Funding comes with admission to the thesis M.Sc.: tuition plus CAD 18,000 in year 1 and CAD 12,000 after. No separate scholarship form.", apply: [
     "Take IELTS (7.0, no band below 6.5) or Duolingo (120)",
     "Email professors in your area",

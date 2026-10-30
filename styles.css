@@ -237,3 +237,8 @@ table.cmp td.rl { font-weight: 700; color: var(--muted); font-size: 13px; white-
 .sync-dot.offline, .sync-dot.error { background: var(--pay); }
 code.code { background: var(--accent-soft); color: var(--accent); padding: 3px 8px; border-radius: 8px; font-size: 14px; word-break: break-all; }
 main { padding-bottom: 110px; }
+
+details.daad summary { cursor: pointer; list-style: none; }
+details.daad summary::-webkit-details-marker { display: none; }
+details.daad h4 { margin: 16px 0 4px; font-size: 15px; color: var(--accent); }
+details.daad ol.list-plain li { margin: 6px 0; }

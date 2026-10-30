@@ -409,7 +409,7 @@
       <div class="rankbox">
         <div><small>World ranking</small><b>${p.rank.world ? esc(wr(p.rank.world)) : "Not ranked"}</b></div>
         <div><small>Ranking in ${esc(p.country)}</small><b>${esc(p.rank.country)}</b></div>
-        <div class="src">Source: ${esc(RANK_SOURCE)}</div>
+        <div class="src">Source: ${esc(p.rank.src || RANK_SOURCE)}</div>
       </div>
 
       <div class="kbox">
@@ -471,7 +471,7 @@
     const f = FUNDING[p.id];
     if (!f) return "";
     const l = FUND_LABEL[f.how];
-    return `<div class="card fund-card"><h3>💰 How do I get the money? <span class="chip ${l.cls}">${esc(l.text)}</span></h3><p style="margin:6px 0 0">${esc(f.text)}</p></div>`;
+    return `<div class="card fund-card"><h3>💰 How do I get the money? <span class="chip ${l.cls}">${esc(l.text)}</span></h3><p style="margin:6px 0 0">${esc(f.text)}</p>${p.country === "Germany" ? `<p class="small" style="margin:8px 0 0">💡 Want a monthly stipend in Germany instead of the blocked account? See <a href="#money/daad">the DAAD scholarship guide</a>.</p>` : ""}</div>`;
   }
 
   function stepsCard(p) {
@@ -540,11 +540,57 @@ ${DS.tips}
       </div>`;
   }
 
+  function daadCard() {
+    return `<details class="card daad" id="daad" ${(location.hash || "").includes("daad") ? "open" : ""}><summary><h3 style="display:inline">🇩🇪 Do I need a DAAD scholarship? (tap to open)</h3></summary>
+      <h4>The short answer</h4>
+      <ul class="list-plain">
+        <li><b>No, you do not need DAAD to study in Germany.</b> The German programs on this site have no tuition, so admission alone is enough. You live on your own blocked account money (EUR 11,904 per year).</li>
+        <li><b>DAAD is useful if you want Germany to pay your living costs.</b> If you win, DAAD pays about <b>EUR 992 per month</b> plus health insurance, a travel allowance and a yearly study allowance (about EUR 460), and the DAAD award letter replaces the blocked account for the visa.</li>
+        <li>It does <b>not</b> pay tuition, so it only works with tuition-free programs (all the German ones here).</li>
+      </ul>
+      <h4>Which DAAD scholarship fits you</h4>
+      <ul class="list-plain">
+        <li><b>DAAD Study Scholarships for STEM Disciplines</b> (master's in mathematics, computer science, natural sciences or engineering). This fits CS / AI / Data (Mayar and Rodayna) and natural sciences like microbiology and ecology (Aya).</li>
+        <li>It is for students from developing and emerging countries: open the DAAD scholarship database, choose Egypt as your country and check this program is listed for you.</li>
+        <li><b>EPOS</b> (development-related master's) needs at least 2 years of work experience, so it is not for fresh graduates. Aya could look at it later, once she has 2 years at VOIS.</li>
+        <li>The general "all disciplines" DAAD study scholarships in Egypt mostly target arts, music and architecture, so for CS and science use the STEM one.</li>
+      </ul>
+      <h4>Rules you must meet</h4>
+      <ul class="list-plain">
+        <li>Bachelor's finished by the deadline and not older than 6 years; no master's degree yet.</li>
+        <li>Above-average grades (your GPA is fine) and you have not lived in Germany for more than 15 months.</li>
+        <li><b>A language certificate is required for DAAD (at least B1, e.g. IELTS or TOEFL), even if the university accepts your MOI letter.</b> So for DAAD you need IELTS.</li>
+        <li>The master's must be full-time, on campus, tuition-free, at a state university, and start in the <b>winter semester (October)</b>. You must not have started it already.</li>
+      </ul>
+      <h4>Timing (important)</h4>
+      <ul class="list-plain">
+        <li>The portal opens around <b>June</b> and closes around <b>early September</b> (last time: 3 September 2026), for master's starting in <b>October of the next year</b>. Decisions come around February.</li>
+        <li>So the round for October 2027 is already closed. Your options: <b>(A)</b> start in 2027 with the blocked account (no DAAD), or <b>(B)</b> apply to DAAD between June and September 2027 for an October 2028 start.</li>
+        <li>You cannot get the STEM scholarship for a master's you already started in Germany, so choose before you go.</li>
+      </ul>
+      <h4>Step by step (for option B)</h4>
+      <ol class="list-plain">
+        <li>Check on the DAAD scholarship database that Egypt is eligible for "Study Scholarships for STEM Disciplines".</li>
+        <li>Take IELTS (aim for 6.5 or higher so universities accept it too).</li>
+        <li>Choose up to 5 tuition-free STEM master's starting in October (for example Passau, TU Darmstadt, TU Dortmund, Hildesheim, Bremen).</li>
+        <li>Apply to those universities on their own deadlines (you can send the admission letter to DAAD later, before funding starts).</li>
+        <li>In June, register on the DAAD portal and download the recommendation form; ask a professor to fill it.</li>
+        <li>Prepare: CV in table form (max 3 pages), motivation letter (1 to 3 pages, why these programs and your plans), transcripts, degree, IELTS, passport, the preferred programs form.</li>
+        <li>Submit before the early September deadline (do not wait for the last day).</li>
+        <li>If shortlisted, do the online interview with a committee of professors.</li>
+        <li>Get the decision (around February), then send your admission letter.</li>
+        <li>Use the DAAD award letter for the German visa instead of a blocked account.</li>
+      </ol>
+      <p class="small muted">Very competitive (one guide estimates about 10% success for Egyptian applicants). The DAAD office in Cairo (Zamalek) can answer questions.</p>
+    </details>`;
+  }
+
   function pageMoney() {
     return `
       <h1>Money guide</h1>
       <p class="lead">How the money works in each country, in simple words. EGP amounts use today's exchange rates, updated automatically every day. You can still type your bank's rate below.</p>
-      <div class="card"><h3>Exchange rates (EGP for 1 unit)</h3>
+      ${daadCard()}
+      <div class="card" style="margin-top:14px"><h3>Exchange rates (EGP for 1 unit)</h3>
         <p class="small" style="margin-top:0">${live ? `✅ Live rates for ${esc(live.date)}, updated automatically every day.` : "Showing approximate rates. Live rates load automatically when you are online."}${Object.keys(store.get("rates", {})).length ? " You changed some rates by hand; those are used instead." : ""}</p>
         <div class="rates">${Object.keys(RATES_DEFAULT).map((c) => `<label>${c}<input type="number" step="0.001" data-rate="${c}" value="${rates[c]}"></label>`).join("")}</div>
         <p class="small muted"><button class="fbtn" id="resetRates">Use today's rates</button> Source: open.er-api.com (market rates; your bank's rate may differ slightly).</p></div>
@@ -629,6 +675,7 @@ ${DS.moneyCards}
     else if (page === "p") { html = pageProgram(arg); tab = "all"; }
     else { html = pageHome(); tab = "home"; }
     $("#app").innerHTML = html + cmpBar();
+    if (page === "money" && arg === "daad") { const el = $("#daad"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
     document.querySelectorAll("#tabs a").forEach((a) => a.classList.toggle("on", a.dataset.tab === tab));
     topActions();
   }
