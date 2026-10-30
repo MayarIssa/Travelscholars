@@ -125,6 +125,15 @@ const FUNDING = {
     "Apply on Apply2B in Round II (by 26 Jan 2027) and pay EUR 100",
     "Fill the Bocconi4Access to Education 2027-2028 form for the AI Scholarship",
     "Get the result (4 Mar 2027 for Round II) together with any award" ] },
+  "tum-inf": { how: "partial", text: "There is no full scholarship: tuition is EUR 4,000 to 6,000 per semester. TUM gives merit tuition waivers for the first 2 semesters to top-ranked new master's students (you apply separately in the TUM scholarship portal with your application number), and need-based waivers in hardship. Living costs come from your blocked account (or DAAD, see the Money guide).", apply: [
+    "Ask Pharos for an official confirmation that the bachelor's was taught in English, and an official class ranking certificate",
+    "Request a uni-assist VPD for TUM (4 to 6 weeks, EUR 75)",
+    "Fill the curriculum analysis form and collect module descriptions",
+    "Write the statement of reasons and the 1,000-word scientific essay",
+    "Apply on TUMonline (summer 2027 by 30 Nov 2026, or winter 2027/28 between 1 Feb and 31 May 2027)",
+    "If invited, take the 90-minute written test",
+    "Apply for the merit tuition waiver in the TUM scholarship portal using your application number (winter intake: 1 Jan to 31 May)",
+    "Receive the admission and waiver decisions" ] },
   "usask-cs": { how: "auto", text: "Funding comes with admission to the thesis M.Sc.: tuition plus CAD 18,000 in year 1 and CAD 12,000 after. No separate scholarship form.", apply: [
     "Take IELTS (7.0, no band below 6.5) or Duolingo (120)",
     "Email professors in your area",
