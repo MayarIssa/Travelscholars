@@ -15,7 +15,7 @@
   /* every profile has its own saved data: keys are prefixed with the profile id */
   const store = {
     get(k, d) { return raw.get(profile + "_" + k, d); },
-    set(k, v) { raw.set(profile + "_" + k, v); },
+    set(k, v) { raw.set(profile + "_" + k, v); markDirty(); },
   };
   let rates = {};
   /* Exchange rates: built-in defaults, replaced by today's live rates (fetched once a day),
@@ -47,6 +47,70 @@
     PROGRAMS = DS.programs; SECTIONS = DS.sections; NEEDS_TEST = DS.needsTest; DE_EXCLUDED = DS.excluded || []; CHECKLIST = DS.checklist;
   }
   useDataset();
+
+  /* ---------- sync across devices ----------
+     Each profile has a private sync code. Everything the profile saves (ticks, statuses, notes,
+     compare list, own checklist items) is copied to the cloud under that code. On another device,
+     enter the same code in the profile page to get the same data. PINs are never uploaded. */
+  const SYNC = { url: "https://ucmpqwtewckuvuaiyhge.supabase.co/rest/v1/rpc/", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjbXBxd3Rld2NrdXZ1YWl5aGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNTg3MjAsImV4cCI6MjEwODkzNDcyMH0.kz65ZlxzE8eZcpSTsuj_zDv2HrJcYxehK77NM9kGfF4" };
+  let syncStatus = "idle", syncTimer = null, applyingRemote = false;
+  function newCode() {
+    const b = new Uint8Array(24); (window.crypto || window.msCrypto).getRandomValues(b);
+    return Array.from(b, (x) => "abcdefghijkmnpqrstuvwxyz23456789"[x % 32]).join("");
+  }
+  const syncCode = () => { let c = raw.get("sync_" + profile, ""); if (!c) { c = newCode(); raw.set("sync_" + profile, c); } return c; };
+  function rpc(fn, body) {
+    return fetch(SYNC.url + fn, { method: "POST", headers: { apikey: SYNC.key, Authorization: "Bearer " + SYNC.key, "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then((r) => { if (!r.ok) throw new Error("sync " + r.status); return r.json(); });
+  }
+  function collect() {
+    const out = {}, pre = "ts_" + profile + "_";
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(pre)) out[k.slice(pre.length)] = JSON.parse(localStorage.getItem(k)); } } catch (e) { /* ignore */ }
+    return out;
+  }
+  function applyRemote(data) {
+    applyingRemote = true;
+    try {
+      const pre = "ts_" + profile + "_", del = [];
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(pre)) del.push(k); }
+      del.forEach((k) => localStorage.removeItem(k));
+      Object.keys(data || {}).forEach((k) => raw.set(profile + "_" + k, data[k]));
+    } catch (e) { /* ignore */ }
+    applyingRemote = false;
+  }
+  function setSyncStatus(s) { syncStatus = s; const el = $("#syncStatus"); if (el) el.textContent = syncLabel(); const d = $("#syncDot"); if (d) d.className = "sync-dot " + s; }
+  const syncLabel = () => ({ idle: "Sync on", saving: "Saving...", ok: "Synced " + (raw.get("syncAt_" + profile, "") ? new Date(raw.get("syncAt_" + profile, "")).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""), offline: "Offline: will sync later", error: "Sync problem: will retry" })[syncStatus] || "";
+  function markDirty() {
+    if (applyingRemote || !profile || typeof fetch !== "function") return;
+    raw.set("syncDirty_" + profile, true);
+    clearTimeout(syncTimer); syncTimer = setTimeout(pushNow, 1500);
+  }
+  function pushNow() {
+    if (!profile) return;
+    const pid = profile; setSyncStatus("saving");
+    rpc("save_state", { p_code: syncCode(), p_data: collect() })
+      .then((t) => { if (pid !== profile) return; raw.set("syncAt_" + pid, t); raw.set("syncDirty_" + pid, false); setSyncStatus("ok"); })
+      .catch(() => setSyncStatus(navigator.onLine === false ? "offline" : "error"));
+  }
+  function pullNow(force) {
+    if (!profile || typeof fetch !== "function") return Promise.resolve();
+    const pid = profile;
+    return rpc("get_state", { p_code: syncCode() })
+      .then((res) => {
+        if (pid !== profile) return;
+        const dirty = raw.get("syncDirty_" + pid, false), at = raw.get("syncAt_" + pid, "");
+        if (!res) { pushNow(); return; }
+        if (dirty && !force) { pushNow(); return; }
+        if (force || !at || new Date(res.updated_at) > new Date(at)) {
+          applyRemote(res.data); raw.set("syncAt_" + pid, res.updated_at); raw.set("syncDirty_" + pid, false);
+          loadRates(); const y = window.scrollY; render(); window.scrollTo(0, y);
+        }
+        setSyncStatus("ok");
+      })
+      .catch(() => setSyncStatus(navigator.onLine === false ? "offline" : "error"));
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") pullNow(); });
+  window.addEventListener("online", () => pullNow());
 
   /* ---------- helpers ---------- */
   const $ = (s, el = document) => el.querySelector(s);
@@ -121,7 +185,85 @@
       <div class="chips">${engChip(p)}${chanceChip(p.chance)}${p.country === "Germany" ? (p.direct ? '<span class="chip good">Apply directly, no uni-assist</span>' : '<span class="chip plain">Via uni-assist</span>') : ""}</div>
       ${moneySummary(p)}
       <div class="foot"><span>⏰ ${dl}</span><span>${esc(statusOf(p.id))}</span></div>
+      <div class="card-actions">${cmpBtn(p)}</div>
     </a>`;
+  }
+
+  function alertBox(msg) {
+    let t = $("#toast"); if (!t) { t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
+    t.textContent = msg; t.className = "show"; clearTimeout(alertBox.h); alertBox.h = setTimeout(() => { t.className = ""; }, 2600);
+  }
+
+  /* ---------- deadline reminders ---------- */
+  const DONE_STATUSES = ["Applied", "Accepted", "Rejected", "Not applying"];
+  function upcoming(days) {
+    const out = [];
+    PROGRAMS.forEach((p) => {
+      if (DONE_STATUSES.includes(statusOf(p.id))) return;
+      p.deadlines.forEach((d, i) => { if (d.d) { const n = daysLeft(d.d); if (n >= 0 && n <= days) out.push({ p, d, i, n }); } });
+    });
+    return out.sort((a, b) => a.n - b.n);
+  }
+  const icsEsc = (s) => String(s).replace(/\\/g, "\\\\").replace(/[,;]/g, (m) => "\\" + m).replace(/\n/g, "\\n");
+  function icsEvent(p, d, i) {
+    const ymd = d.d.replace(/-/g, "");
+    const next = new Date(d.d + "T00:00:00"); next.setDate(next.getDate() + 1);
+    const ymd2 = next.toISOString().slice(0, 10).replace(/-/g, "");
+    const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+    return ["BEGIN:VEVENT", `UID:${p.id}-${i}-${ymd}@travelscholars`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${ymd}`, `DTEND;VALUE=DATE:${ymd2}`,
+      `SUMMARY:${icsEsc("Deadline: " + p.uni + " (" + p.prog + ")")}`, `DESCRIPTION:${icsEsc(d.t + "\n" + p.link)}`, `URL:${p.link}`,
+      "BEGIN:VALARM", "TRIGGER:-P7D", "ACTION:DISPLAY", `DESCRIPTION:${icsEsc("7 days left: " + p.uni)}`, "END:VALARM",
+      "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", `DESCRIPTION:${icsEsc("Tomorrow: " + p.uni)}`, "END:VALARM", "END:VEVENT"].join("\r\n");
+  }
+  function downloadIcs(events, name) {
+    const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Travel Scholars//EN", "CALSCALE:GREGORIAN", ...events, "END:VCALENDAR"].join("\r\n");
+    const url = URL.createObjectURL(new Blob([body], { type: "text/calendar;charset=utf-8" }));
+    const link = document.createElement("a"); link.href = url; link.download = name + ".ics"; document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+  const calBtn = (p, i) => `<button class="cal-btn" data-ics="${p.id}|${i}" title="Add to my calendar (reminders 7 days and 1 day before)">📅 Add to calendar</button>`;
+  function reminderBanner() {
+    const list = upcoming(30);
+    if (!list.length) return "";
+    return `<div class="remind"><div class="remind-head"><b>⏰ Coming up in the next 30 days</b><button class="cal-btn" data-ics-all="1">📅 Add all deadlines to my calendar</button></div>
+      ${list.map((x) => `<div class="remind-row"><a href="#p/${x.p.id}"><span class="days-pill">${x.n === 0 ? "Today" : x.n + (x.n === 1 ? " day" : " days")}</span> ${x.p.flag} <b>${esc(x.p.uni)}</b> <span class="muted small">${esc(x.d.t)}</span></a>${calBtn(x.p, x.i)}</div>`).join("")}
+      <p class="small muted" style="margin:6px 0 0">Programs you marked Applied, Accepted, Rejected or Not applying are hidden here.</p></div>`;
+  }
+
+  /* ---------- compare ---------- */
+  const cmpList = () => store.get("compare", []).filter((id) => byId(id));
+  const cmpBtn = (p) => { const on = cmpList().includes(p.id); return `<button class="cmp-btn ${on ? "on" : ""}" data-compare="${p.id}">${on ? "✓ Comparing" : "+ Compare"}</button>`; };
+  function cmpBar() {
+    const l = cmpList();
+    if (!l.length || (location.hash || "").startsWith("#compare")) return "";
+    return `<div class="cmpbar"><span>Comparing <b>${l.length}</b> of 3: ${l.map((id) => esc(byId(id).uni.split(" (")[0])).join(", ")}</span><a class="fbtn on" href="#compare">View comparison</a><button class="fbtn" data-cmp-clear="1">Clear</button></div>`;
+  }
+  function pageCompare() {
+    const l = cmpList().map(byId);
+    if (!l.length) return `<h1>Compare programs</h1><div class="empty">Tap "+ Compare" on up to 3 program cards (All programs or Best for me), then come back here.</div>`;
+    const rows = [
+      ["World ranking", (p) => (p.rank.world ? esc(p.rank.world) : "Not ranked")],
+      ["Ranking in country", (p) => esc(p.rank.country)],
+      ["Country, city", (p) => `${p.flag} ${esc(p.country)}, ${esc(p.city)}`],
+      ["Duration", (p) => esc(p.duration)],
+      ["English", (p) => engChip(p) + "<div class='small'>" + esc(p.eng.t) + "</div>"],
+      ["Chance of acceptance", (p) => chanceChip(p.chance) + (p.accept ? "<div class='small'>" + esc(p.accept) + "</div>" : "")],
+      ["How you get the money", (p) => { const f = FUNDING[p.id]; return f ? `<span class="chip ${FUND_LABEL[f.how].cls}">${esc(FUND_LABEL[f.how].text)}</span>` : ""; }],
+      ["Tuition", (p) => esc(p.tuitionLine)],
+      ["Stipend", (p) => (p.stipend ? esc(p.stipend.text) : "None")],
+      ["Blocked account", (p) => (p.blocked ? "EUR 11,904 for 12 months" : "Not needed")],
+      ["Paid to the university (total)", (p) => `${money(calc(p).uni, p.cur)}<div class="small muted">${egp(calc(p).uni, p.cur)}</div>`],
+      ["Money to bring from Egypt", (p) => `${money(calc(p).bring, p.cur)}<div class="small muted">${egp(calc(p).bring, p.cur)}</div>`],
+      ["Overall from your pocket", (p) => { const c = calc(p); return c.net == null ? "Depends on offer" : c.net <= 0 ? `<span style="color:var(--good)">Covered + about ${money(-c.net, p.cur)} extra</span>` : `${money(c.net, p.cur)}<div class="small muted">${egp(c.net, p.cur)}</div>`; }],
+      ["Next deadline", (p) => { const d = nextDeadline(p); return d ? esc(d.t) : "Closed for now"; }],
+      ["Apply via", (p) => esc(p.applyVia)],
+      ["Watch out", (p) => esc(p.watch)],
+      ["My status", (p) => esc(statusOf(p.id))],
+    ];
+    return `<h1>Compare programs</h1>
+      <p class="lead">Side by side. Remove a program with ✕, or add more from the program cards (up to 3).</p>
+      <div class="card cmp-wrap"><table class="cmp"><tr><th></th>${l.map((p) => `<th><a href="#p/${p.id}">${p.flag} ${esc(p.uni)}</a><div class="small muted">${esc(p.prog)}</div><button class="del" data-compare="${p.id}" title="Remove">✕ Remove</button></th>`).join("")}</tr>
+      ${rows.map(([label, f]) => `<tr><td class="rl">${label}</td>${l.map((p) => `<td>${f(p)}</td>`).join("")}</tr>`).join("")}</table></div>`;
   }
 
   /* ---------- pages ---------- */
@@ -138,6 +280,7 @@
         <ol class="toplist">${list.map((p) => topRow(p, "rankSec")).join("")}</ol></div>`;
     };
     return `
+      ${reminderBanner()}
       <h1>${esc(prof().name)}'s master's options for 2027</h1>
       <p class="lead">${esc(DS.lead)}</p>
       <div class="stats">
@@ -277,6 +420,7 @@
       </div>
 
       ${say.join("")}
+      ${fundingBox(p)}
 
       <div class="two" style="margin-top:14px">
         <div class="card"><h3>💸 Money to bring from Egypt</h3><p class="muted small" style="margin-top:0">What you need ready before and when you travel.</p>
@@ -296,7 +440,7 @@
 
       <div class="two" style="margin-top:14px">
         <div class="card"><h3>📅 Deadlines and how to apply</h3>
-          <ul class="list-plain">${p.deadlines.map((d) => `<li><b>${esc(d.t)}</b>${d.d ? ` <span class="chip ${daysLeft(d.d) < 0 ? "plain" : daysLeft(d.d) < 45 ? "pay" : ""}">${daysLeft(d.d) < 0 ? "passed" : daysLeft(d.d) + " days left"}</span>` : ""}</li>`).join("")}</ul>
+          <ul class="list-plain">${p.deadlines.map((d) => `<li><b>${esc(d.t)}</b>${d.d ? ` <span class="chip ${daysLeft(d.d) < 0 ? "plain" : daysLeft(d.d) < 45 ? "pay" : ""}">${daysLeft(d.d) < 0 ? "passed" : daysLeft(d.d) + " days left"}</span>${daysLeft(d.d) >= 0 ? " " + calBtn(p, p.deadlines.indexOf(d)) : ""}` : ""}</li>`).join("")}</ul>
           <dl class="req" style="margin-top:12px"><div><dt>Intake</dt><dd>${esc(p.intake)}</dd></div><div><dt>Apply via</dt><dd>${esc(p.applyVia)}</dd></div>
           <div><dt>Official page</dt><dd><a href="${esc(p.link)}" target="_blank" rel="noopener">Open the official page ↗</a></dd></div></dl></div>
         <div class="card"><h3>📋 Requirements</h3>
@@ -316,10 +460,32 @@
           <p class="small muted">General papers (MOI letter, letters, CV) are also in <a href="#checklist">My checklist</a>.</p></div>
         <div class="card"><h3>📌 My application status</h3>
           <select class="status-sel" data-status="${p.id}">${STATUSES.map((s) => `<option ${statusOf(p.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select>
-          <p class="muted small">Saved in ${esc(prof().name)}'s profile on this device.</p>
+          <p class="muted small">Saved in ${esc(prof().name)}'s profile and synced to your other devices.</p>
           <h3 style="margin-top:16px">📝 My notes</h3>
           <textarea class="notes" data-note="${p.id}" placeholder="Professors I emailed, login details hint, questions to ask...">${esc(store.get("note_" + p.id, ""))}</textarea></div>
-      </div>`;
+      </div>
+      ${stepsCard(p)}`;
+  }
+
+  function fundingBox(p) {
+    const f = FUNDING[p.id];
+    if (!f) return "";
+    const l = FUND_LABEL[f.how];
+    return `<div class="card fund-card"><h3>💰 How do I get the money? <span class="chip ${l.cls}">${esc(l.text)}</span></h3><p style="margin:6px 0 0">${esc(f.text)}</p></div>`;
+  }
+
+  function stepsCard(p) {
+    const steps = stepsFor(p);
+    const done = steps.filter((_, i) => store.get(`step_${p.id}_${i}`, false)).length;
+    let phase = "", html = "";
+    steps.forEach((s, i) => {
+      if (s.phase !== phase) { phase = s.phase; html += `<div class="phase">${esc(phase)}</div>`; }
+      const k = `step_${p.id}_${i}`, on = store.get(k, false);
+      html += `<label class="check step ${on ? "done" : ""}"><input type="checkbox" data-k="${k}" ${on ? "checked" : ""}><span class="num">${i + 1}</span><span class="txt">${esc(s.t)}</span></label>`;
+    });
+    return `<div class="card" style="margin-top:14px"><h3>🧭 Step by step until you travel</h3>
+      <div class="progress"><div style="width:${(done / steps.length) * 100}%"></div></div>
+      <p class="muted small" style="margin:0 0 6px">${done} of ${steps.length} steps done. Tick each step when you finish it.</p>${html}</div>`;
   }
 
   function pageDeadlines() {
@@ -332,11 +498,12 @@
       return `<a href="#p/${x.p.id}" class="${dl < 0 ? "past" : dl <= 45 ? "soon" : ""}">
         <div class="date">${fmtDate(x.d.d)}</div>
         <div><b>${x.p.flag} ${esc(x.p.uni)}</b><div class="muted small">${esc(x.p.prog)}<br>${esc(x.d.t)}</div></div>
-        <div class="days">${dl < 0 ? "passed" : dl + " days"}</div></a>`;
+        <div class="days">${dl < 0 ? "passed" : dl + " days"}${dl >= 0 ? `<div>${calBtn(x.p, x.p.deadlines.indexOf(x.d))}</div>` : ""}</div></a>`;
     };
     return `
       <h1>Deadlines</h1>
-      <p class="lead">Sorted by date. Red means less than 45 days left. Start the papers that take longest first: MOI letter, recommendation letters, uni-assist VPD.</p>
+      <p class="lead">Sorted by date. Red means less than 45 days left. Tap 📅 to add a deadline to your phone calendar with reminders 7 days and 1 day before.</p>
+      ${reminderBanner()}
       <div class="tl">${dated.map(row).join("")}</div>
       <h2>Rolling or not announced yet</h2>
       <div class="tl">${undated.map((x) => `<a href="#p/${x.p.id}"><div class="date">${x.d.asap ? "Apply now" : "Check"}</div><div><b>${x.p.flag} ${esc(x.p.uni)}</b><div class="muted small">${esc(x.d.t)}</div></div><div></div></a>`).join("")}</div>`;
@@ -415,6 +582,13 @@ ${DS.moneyCards}
         <form id="setPin" class="addrow"><input name="pin" type="password" inputmode="numeric" minlength="4" maxlength="8" placeholder="New PIN (4 to 8 digits)" pattern="[0-9]{4,8}" required><button class="fbtn on" type="submit">Save PIN</button></form>
         ${has ? '<p><button class="fbtn" id="removePin">Remove PIN</button></p>' : ""}
         <p id="pinMsg" class="small" style="color:var(--good)"></p></div>
+      <div class="card" style="max-width:520px;margin-top:14px"><h3>☁️ Sync across my devices</h3>
+        <p class="small"><span id="syncDot" class="sync-dot ${syncStatus}"></span> <span id="syncStatus">${syncLabel()}</span></p>
+        <p class="small muted">Your ticks, statuses, notes and compare list are saved online under this private code. Keep it secret: anyone with the code can see your progress.</p>
+        <p><b>Your sync code:</b> <code class="code" id="myCode">${esc(syncCode())}</code> <button class="fbtn" data-copy-code="1">Copy</button></p>
+        <p class="small"><b>On your other device:</b> open this site, choose ${esc(prof().name)}, open this page, and paste the code below.</p>
+        <form id="linkCode" class="addrow"><input name="code" placeholder="Paste the code from your other device" minlength="20" maxlength="64" required><button class="fbtn on" type="submit">Link</button></form>
+        <p id="linkMsg" class="small"></p></div>
       <div class="card" style="max-width:520px;margin-top:14px"><h3>👥 Switch profile</h3><p><button class="fbtn on" data-switch="1">Switch to another profile</button></p></div>`;
   }
 
@@ -435,7 +609,7 @@ ${DS.moneyCards}
     if (!profile) { el.innerHTML = themeBtn(); return; }
     const cp = checklistProgress();
     el.innerHTML = `${themeBtn()}<a class="cl-btn" href="#checklist">✅ My checklist <span>${cp.done}/${cp.total}</span></a>
-      <a class="who" href="#profile" style="--pc:${prof().color}" title="Profile"><span class="avatar sm">${esc(prof().name[0])}</span><span class="who-name">${esc(prof().name)}</span></a>`;
+      <a class="who" href="#profile" style="--pc:${prof().color}" title="Profile"><span class="avatar sm">${esc(prof().name[0])}</span><span class="who-name">${esc(prof().name)}</span><span class="sync-dot ${syncStatus}" title="${esc(syncLabel())}"></span></a>`;
   }
 
   /* ---------- router ---------- */
@@ -451,9 +625,10 @@ ${DS.moneyCards}
     else if (page === "checklist") html = pageChecklist();
     else if (page === "money") html = pageMoney();
     else if (page === "profile") html = pageSettings();
+    else if (page === "compare") html = pageCompare();
     else if (page === "p") { html = pageProgram(arg); tab = "all"; }
     else { html = pageHome(); tab = "home"; }
-    $("#app").innerHTML = html;
+    $("#app").innerHTML = html + cmpBar();
     document.querySelectorAll("#tabs a").forEach((a) => a.classList.toggle("on", a.dataset.tab === tab));
     topActions();
   }
@@ -462,6 +637,7 @@ ${DS.moneyCards}
   function enter(pid) {
     profile = pid; raw.set("current", pid); loadRates(); useDataset(); pendingPin = null; Object.assign(F, { country: "All", field: "All", money: "All", eng: "All", apply: "All" });
     if (location.hash !== "#home") location.hash = "#home"; render(); window.scrollTo(0, 0);
+    pullNow();
   }
   document.addEventListener("submit", (e) => {
     const f = e.target; e.preventDefault();
@@ -471,6 +647,12 @@ ${DS.moneyCards}
       else { $("#pinErr").textContent = "Wrong PIN, try again."; f.pin.value = ""; }
     } else if (f.id === "setPin") {
       raw.set("pin_" + profile, f.pin.value); unlocked[profile] = true; saveUnlocked(); render(); $("#pinMsg").textContent = "PIN saved.";
+    } else if (f.id === "linkCode") {
+      const c = f.code.value.trim().toLowerCase();
+      if (c.length < 20) return;
+      raw.set("sync_" + profile, c); raw.set("syncAt_" + profile, ""); raw.set("syncDirty_" + profile, false);
+      $("#linkMsg").textContent = "Linking...";
+      pullNow(true).then(() => { const m = $("#linkMsg"); if (m) m.textContent = "✅ Linked. This device now shows the same data."; });
     } else if (f.id === "addCustom") {
       const t = f.t.value.trim(); if (!t) return;
       const list = store.get("custom", []); list.push({ text: t, done: false }); store.set("custom", list); render();
@@ -481,11 +663,30 @@ ${DS.moneyCards}
     if (e.target.dataset.note) store.set("note_" + e.target.dataset.note, e.target.value);
   });
   document.addEventListener("click", (e) => {
+    const cb = e.target.closest("[data-compare]");
+    if (cb) {
+      e.preventDefault(); e.stopPropagation();
+      let l = cmpList(); const id = cb.dataset.compare;
+      if (l.includes(id)) l = l.filter((x) => x !== id);
+      else if (l.length >= 3) { alertBox("You can compare up to 3 programs. Remove one first."); return; }
+      else l.push(id);
+      store.set("compare", l); const y = window.scrollY; render(); window.scrollTo(0, y); return;
+    }
+    if (e.target.closest("[data-cmp-clear]")) { store.set("compare", []); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
+    const ic = e.target.closest("[data-ics]");
+    if (ic) { e.preventDefault(); e.stopPropagation(); const [id, i] = ic.dataset.ics.split("|"); const p = byId(id); downloadIcs([icsEvent(p, p.deadlines[+i], +i)], "deadline-" + id); return; }
+    if (e.target.closest("[data-ics-all]")) {
+      e.preventDefault();
+      const ev = [];
+      PROGRAMS.forEach((p) => { if (DONE_STATUSES.includes(statusOf(p.id))) return; p.deadlines.forEach((d, i) => { if (d.d && daysLeft(d.d) >= 0) ev.push(icsEvent(p, d, i)); }); });
+      downloadIcs(ev, "all-deadlines"); return;
+    }
     if (e.target.closest("[data-theme-toggle]")) { theme = theme === "auto" ? "light" : theme === "light" ? "dark" : "auto"; raw.set("theme", theme); applyTheme(); topActions(); return; }
     const pick = e.target.closest("[data-pick]");
     if (pick) { const pid = pick.dataset.pick; if (raw.get("pin_" + pid, "") && !unlocked[pid]) { pendingPin = pid; render(); } else enter(pid); return; }
     if (e.target.closest("[data-back]")) { e.preventDefault(); pendingPin = null; render(); return; }
     if (e.target.closest("[data-switch]")) { delete unlocked[profile]; saveUnlocked(); profile = null; raw.del("current"); render(); window.scrollTo(0, 0); return; }
+    if (e.target.closest("[data-copy-code]")) { try { navigator.clipboard.writeText(syncCode()); alertBox("Sync code copied"); } catch (err) { alertBox(syncCode()); } return; }
     if (e.target.id === "removePin") { raw.del("pin_" + profile); render(); return; }
     const del = e.target.closest("[data-del]");
     if (del) { const list = store.get("custom", []); list.splice(+del.dataset.del, 1); store.set("custom", list); render(); return; }
@@ -502,6 +703,7 @@ ${DS.moneyCards}
     else if (t.dataset.rate) { const v = parseFloat(t.value); if (v > 0) { const m = store.get("rates", {}); m[t.dataset.rate] = v; store.set("rates", m); loadRates(); const y = window.scrollY; render(); window.scrollTo(0, y); } }
   });
   refreshLiveRates();
+  if (profile) pullNow();
   window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
   render();
 })();
