@@ -11,12 +11,13 @@ const PROFILES = [
   { id: "aya", name: "Aya", color: "#c2672b", data: "aya" },
 ];
 
-const RATES_DEFAULT = { EUR: 61, USD: 52.7, CAD: 38, HKD: 6.8, HUF: 0.155, CNY: 7.4, QAR: 14.5 };
+const RATES_DEFAULT = { CHF: 66, EUR: 61, USD: 52.7, CAD: 38, HKD: 6.8, HUF: 0.155, CNY: 7.4, QAR: 14.5 };
 
 const SECTIONS = {
   de: { name: "Germany", sub: "Public universities, no tuition, MOI accepted", icon: "🇩🇪" },
   na: { name: "USA and Canada", sub: "Fully funded with a stipend, MOI accepted", icon: "🌎" },
   world: { name: "Worldwide", sub: "Fully funded scholarships, MOI or no test", icon: "🌍" },
+  ch: { name: "Switzerland", sub: "Top universities, excellence scholarships, MOI or no test", icon: "🇨🇭" },
 };
 
 /* Shared Germany money lines */
@@ -536,6 +537,75 @@ const PROGRAMS = [
     bring: [["Flight", 1500, true], ["Setup money", 5000, true]],
     docs: ["HBKU online application", "MOI documentation from Pharos", "2 recommendation letters", "Statement of purpose", "CV"],
   },
+
+  /* ============================ SWITZERLAND ============================ */
+  {
+    id: "eth-cs", rank: { world: "12", country: "1 in Switzerland", sort: 12 }, sec: "ch", country: "Switzerland", flag: "🇨🇭",
+    uni: "ETH Zurich + Excellence Scholarship (ESOP)", prog: "M.Sc. Computer Science (or M.Sc. Data Science)",
+    city: "Zurich", field: ["AI", "CS", "Data"], degree: "Master's (taught)", duration: "1.5 to 2 years (3 to 4 semesters)",
+    intake: "September",
+    deadlines: [{ t: "Master's + ESOP scholarship application: 1 to 30 Nov 2026 (eApply). Submit well before 30 Nov", d: "2026-11-30" }, { t: "Results: end of March 2027 (some interviews in February)", d: null }],
+    applyVia: "ETH eApply portal: master's application and ESOP scholarship application together",
+    eng: { s: "yes", t: "MOI accepted: if the whole Bachelor's was taught only in English, the language of instruction must be officially confirmed by the university. The letter must come from the Registrar (central administration) with stamp and signature, and say English was the ONLY language of instruction. Letters from professors are rejected." },
+    german: "Not required.",
+    academic: "Excellent CS bachelor (ESOP expects top 10% of your class). For ESOP: a master's thesis pre-proposal you write yourself and possibly 2 professor references. ETH checks your courses against its own CS bachelor.",
+    chance: "Low", rankAll: 18, rankSec: 1,
+    accept: "Very competitive. ETH does not publish an acceptance rate. ESOP gives only about 60 scholarships per year across all of ETH, and the master's admission itself is selective.",
+    why: "World #12 university, and ESOP pays everything: tuition waived plus CHF 13,500 per semester, enough to live in Zurich. MOI is officially accepted.",
+    watch: "The MOI letter wording must be exact, otherwise the application is rejected and you cannot send a test score later. Without ESOP, Zurich is very expensive. Deadline is in November, so start the pre-proposal now.",
+    link: "https://ethz.ch/en/studies/master/application/language-requirements.html",
+    cur: "CHF", tuitionFree: true,
+    tuitionLine: "With ESOP you don't pay anything for the university: tuition (CHF 2,190 per semester for international students) is waived. You only pay the CHF 150 application fee.",
+    uniLines: [["Application fee", 150]],
+    other: [["Swiss student visa (est.)", 100, true], ["Flight Cairo to Zurich", 400, true], ["First month setup (deposit, insurance)", 3000, true]],
+    living: { perMonth: 2000, months: 24, est: true, note: "Zurich estimate with a student room, health insurance and food. Zurich is one of the most expensive cities in Europe." },
+    stipend: { total: 54000, text: "You get CHF 13,500 per semester with ESOP (CHF 27,000 per year) plus a tuition waiver." },
+    blocked: null,
+    proof: "For the Swiss visa you show money for one year. The ESOP award letter counts as proof of funds.",
+    bring: [["Application fee", 150, false], ["Visa", 100, true], ["Flight", 400, true], ["Setup money until the first payment", 3000, true]],
+    docs: [
+      "MOI letter from the Pharos Registrar: English was the ONLY language of instruction for the entire Bachelor's (stamp + signature)",
+      "eApply master's application (CS or Data Science)",
+      "ESOP application in the same eApply (by 30 Nov)",
+      "Master's thesis pre-proposal written by you",
+      "2 professor references (if requested)",
+      "Transcript and degree in English",
+      "CV and motivation letter",
+    ],
+  },
+  {
+    id: "epfl-cs", rank: { world: "36", country: "2 in Switzerland", sort: 36 }, sec: "ch", country: "Switzerland", flag: "🇨🇭",
+    uni: "EPFL Lausanne + Master Excellence Fellowship", prog: "M.Sc. Computer Science (or Data Science)",
+    city: "Lausanne", field: ["AI", "CS", "Data"], degree: "Master's (taught)", duration: "1.5 to 2 years",
+    intake: "September",
+    deadlines: [{ t: "Round 1 (best for the fellowship): 15 Dec 2026", d: "2026-12-15" }, { t: "Round 2: 31 Mar 2027", d: "2027-03-31" }],
+    applyVia: "EPFL online admission application (the fellowship is considered with your application)",
+    eng: { s: "yes", t: "No English certificate required: the EPFL CS master's page says TOEFL or IELTS is not required (welcome but optional). Include the MOI letter anyway." },
+    german: "Not required. Learning some French helps in daily life.",
+    academic: "Excellent bachelor's grades. The committee looks at your grades, your university's reputation, background, statement of purpose and recommendation letters.",
+    chance: "Low", rankAll: 19, rankSec: 2,
+    accept: "Very competitive. EPFL does not publish an acceptance rate. The Excellence Fellowship goes to only about 3% of master's students.",
+    why: "World #36, no English test needed at all, and the fellowship pays CHF 10,000 per semester.",
+    watch: "The fellowship does NOT cover tuition (CHF 2,240 per semester for international students), and Lausanne is expensive. Without the fellowship this is not affordable. Apply in round 1.",
+    link: "https://epfl.ch/schools/ic/education-master-computer-science-admission-criteria",
+    cur: "CHF", tuitionFree: false,
+    tuitionLine: "You pay tuition of CHF 2,240 per semester (international rate since autumn 2025). The fellowship of CHF 10,000 per semester covers it and leaves about CHF 7,760.",
+    uniLines: [["Application fee (check portal)", 150], ["Tuition x 4 semesters (CHF 2,240 each)", 8960]],
+    other: [["Swiss student visa (est.)", 100, true], ["Flight Cairo to Geneva", 400, true], ["First month setup (deposit, insurance)", 3000, true]],
+    living: { perMonth: 1800, months: 24, est: true, note: "Lausanne estimate with a student room, health insurance and food." },
+    stipend: { total: 40000, text: "You get the Excellence Fellowship: CHF 10,000 per semester for up to 4 semesters (CHF 40,000)." },
+    blocked: null,
+    proof: "For the Swiss visa you show money for one year. The fellowship letter counts toward it.",
+    bring: [["Application fee", 150, true], ["Visa", 100, true], ["Flight", 400, true], ["Setup money", 3000, true], ["First semester tuition (before the fellowship is paid, est.)", 2240, true]],
+    docs: [
+      "EPFL online application (round 1 by 15 Dec)",
+      "Statement of purpose",
+      "Recommendation letters",
+      "Transcript and degree in English",
+      "CV",
+      "MOI letter (optional but helpful)",
+    ],
+  },
 ];
 
 /* Programs that are funded but need an English test (or MOI not confirmed) */
@@ -551,6 +621,8 @@ const NEEDS_TEST = [
   { sec: "world", name: "Erasmus Mundus EMAI (Europe)", money: "Tuition + EUR 1,400 per month for 24 months", rule: "Certificate unless listed country; ask emai.eu@upf.edu about MOI.", deadline: "Early 2027", link: "https://www.upf.edu/web/emai/faqs" },
   { sec: "world", name: "Erasmus Mundus DEAI (Data Eng. and AI)", money: "Tuition + monthly stipend", rule: "B2 proof (IELTS 5.5 / TOEFL 72).", deadline: "About Jan 2027", link: "https://deai.ulb.be/" },
   { sec: "world", name: "CUHK (Hong Kong), MPhil CSE", money: "About HKD 19,100 per month", rule: "Exemption not confirmed.", deadline: "Check", link: "https://www.cse.cuhk.edu.hk/admission/mphil-phd/early-admission/" },
+  { sec: "ch", name: "Finland: Aalto, Helsinki, Tampere", money: "Tuition waivers are partial (Tampere: no 100% waivers)", rule: "English-taught degree only counts from listed countries; Egypt is not listed, so IELTS / TOEFL needed.", deadline: "Early January 2027", link: "https://aalto.fi/en/admission-services/language-requirements-in-masters-admissions" },
+  { sec: "ch", name: "Poland: NAWA Banach / Lukasiewicz scholarships", money: "Free tuition + monthly stipend", rule: "Egypt is not on either eligible country list.", deadline: "Not eligible", link: "https://study.gov.pl/stefan-banach-nawa-programme" },
   { sec: "world", name: "Turkiye Burslari", money: "Full tuition, stipend, dorm, insurance", rule: "English proof for some programs.", deadline: "About Jan to 20 Feb 2027", link: "https://opportunityinside.com/scholarships/turkiye-burslari-scholarship-turkey-2027.html" },
 ];
 

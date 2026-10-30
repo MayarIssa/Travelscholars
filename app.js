@@ -278,6 +278,7 @@
           <dl class="req"><div><dt>English</dt><dd>${esc(p.eng.t)}</dd></div>
           ${p.german ? `<div><dt>German</dt><dd>${esc(p.german)}</dd></div>` : ""}
           <div><dt>Academic</dt><dd>${esc(p.academic)}</dd></div>
+          <div><dt>Chance of acceptance</dt><dd><b>${esc(p.chance)}</b>${p.accept ? ". " + esc(p.accept) : ""}</dd></div>
           <div><dt>Why it is good for me</dt><dd>${esc(p.why)}</dd></div>
           <div><dt>Watch out</dt><dd>${esc(p.watch)}</dd></div></dl></div>
       </div>
