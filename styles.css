@@ -16,13 +16,22 @@
   --radius: 14px;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #12161c; --card: #1b2129; --ink: #e9edf2; --muted: #9aa5b3; --line: #2b333d;
     --accent: #5cc4bd; --accent-soft: #173533; --good: #6fd39b; --good-soft: #17301f;
     --pay: #f08f78; --pay-soft: #3a211b; --warn: #f0c35c; --warn-soft: #352b14;
     --shadow: none;
   }
 }
+:root[data-theme="dark"] {
+    --bg: #12161c; --card: #1b2129; --ink: #e9edf2; --muted: #9aa5b3; --line: #2b333d;
+    --accent: #5cc4bd; --accent-soft: #173533; --good: #6fd39b; --good-soft: #17301f;
+    --pay: #f08f78; --pay-soft: #3a211b; --warn: #f0c35c; --warn-soft: #352b14;
+    --shadow: none;
+}
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
@@ -181,9 +190,13 @@ textarea.notes { width: 100%; min-height: 110px; border: 1px solid var(--line); 
 
 /* Rankings */
 .chip.rank-chip { background: #eef0fb; color: #3b4a9c; }
-@media (prefers-color-scheme: dark) { .chip.rank-chip { background: #222a4a; color: #a9b5f5; } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip.rank-chip { background: #222a4a; color: #a9b5f5; } }
+:root[data-theme="dark"] .chip.rank-chip { background: #222a4a; color: #a9b5f5; }
 .rankbox { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
 .rankbox small { display: block; font-weight: 700; color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; }
 .rankbox b { font-size: 20px; }
 .rankbox .src { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
 table.rank-table td:nth-child(2), table.rank-table td:nth-child(3) { text-align: left; }
+
+.theme-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); cursor: pointer; font-size: 17px; display: grid; place-items: center; padding: 0; }
+.theme-btn:hover { border-color: var(--accent); }

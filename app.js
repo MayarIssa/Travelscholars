@@ -18,7 +18,26 @@
     set(k, v) { raw.set(profile + "_" + k, v); },
   };
   let rates = {};
-  const loadRates = () => { rates = Object.assign({}, RATES_DEFAULT, store.get("rates", {})); };
+  /* Exchange rates: built-in defaults, replaced by today's live rates (fetched once a day),
+     replaced by any rate the person typed in by hand (until they press "Use today's rates"). */
+  const todayKey = () => new Date().toISOString().slice(0, 10);
+  let live = raw.get("live_rates", null);
+  const loadRates = () => { rates = Object.assign({}, RATES_DEFAULT, live ? live.rates : {}, store.get("rates", {})); };
+  function refreshLiveRates() {
+    if (live && live.date === todayKey()) return;
+    if (typeof fetch !== "function") return;
+    fetch("https://open.er-api.com/v6/latest/EGP")
+      .then((r) => r.json())
+      .then((j) => {
+        if (!j || j.result !== "success" || !j.rates) return;
+        const out = {};
+        Object.keys(RATES_DEFAULT).forEach((c) => { if (j.rates[c] > 0) out[c] = Math.round((1 / j.rates[c]) * 1000) / 1000; });
+        live = { date: todayKey(), updated: j.time_last_update_utc || "", rates: out };
+        raw.set("live_rates", live);
+        if (profile) { loadRates(); const y = window.scrollY; render(); window.scrollTo(0, y); }
+      })
+      .catch(() => { /* offline: keep the last rates */ });
+  }
   if (profile) loadRates();
   const prof = () => PROFILES.find((p) => p.id === profile);
   /* each profile reads its own program list (dataset) */
@@ -357,10 +376,11 @@ ${DS.tips}
   function pageMoney() {
     return `
       <h1>Money guide</h1>
-      <p class="lead">How the money works in each country, in simple words. EGP amounts use the rates below; change them to today's bank rate and every page updates.</p>
+      <p class="lead">How the money works in each country, in simple words. EGP amounts use today's exchange rates, updated automatically every day. You can still type your bank's rate below.</p>
       <div class="card"><h3>Exchange rates (EGP for 1 unit)</h3>
+        <p class="small" style="margin-top:0">${live ? `✅ Live rates for ${esc(live.date)}, updated automatically every day.` : "Showing approximate rates. Live rates load automatically when you are online."}${Object.keys(store.get("rates", {})).length ? " You changed some rates by hand; those are used instead." : ""}</p>
         <div class="rates">${Object.keys(RATES_DEFAULT).map((c) => `<label>${c}<input type="number" step="0.001" data-rate="${c}" value="${rates[c]}"></label>`).join("")}</div>
-        <p class="small muted">Defaults are approximate. <button class="fbtn" id="resetRates">Reset</button></p></div>
+        <p class="small muted"><button class="fbtn" id="resetRates">Use today's rates</button> Source: open.er-api.com (market rates; your bank's rate may differ slightly).</p></div>
       <div class="grid" style="margin-top:14px">
 ${DS.moneyCards}
       </div>
@@ -398,12 +418,23 @@ ${DS.moneyCards}
       <div class="card" style="max-width:520px;margin-top:14px"><h3>👥 Switch profile</h3><p><button class="fbtn on" data-switch="1">Switch to another profile</button></p></div>`;
   }
 
+  /* Light / dark mode: follows the device unless the person picks one */
+  const THEMES = { auto: "🌓", light: "☀️", dark: "🌙" };
+  const themeLabel = { auto: "Theme: same as device", light: "Theme: light", dark: "Theme: dark" };
+  let theme = raw.get("theme", "auto");
+  function applyTheme() {
+    if (theme === "auto") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", theme);
+  }
+  applyTheme();
+  const themeBtn = () => `<button class="theme-btn" data-theme-toggle="1" title="${themeLabel[theme]} (tap to change)" aria-label="${themeLabel[theme]}">${THEMES[theme]}</button>`;
+
   function topActions() {
     const el = $("#topActions");
     if (!el) return;
-    if (!profile) { el.innerHTML = ""; return; }
+    if (!profile) { el.innerHTML = themeBtn(); return; }
     const cp = checklistProgress();
-    el.innerHTML = `<a class="cl-btn" href="#checklist">✅ My checklist <span>${cp.done}/${cp.total}</span></a>
+    el.innerHTML = `${themeBtn()}<a class="cl-btn" href="#checklist">✅ My checklist <span>${cp.done}/${cp.total}</span></a>
       <a class="who" href="#profile" style="--pc:${prof().color}" title="Profile"><span class="avatar sm">${esc(prof().name[0])}</span><span class="who-name">${esc(prof().name)}</span></a>`;
   }
 
@@ -450,6 +481,7 @@ ${DS.moneyCards}
     if (e.target.dataset.note) store.set("note_" + e.target.dataset.note, e.target.value);
   });
   document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-theme-toggle]")) { theme = theme === "auto" ? "light" : theme === "light" ? "dark" : "auto"; raw.set("theme", theme); applyTheme(); topActions(); return; }
     const pick = e.target.closest("[data-pick]");
     if (pick) { const pid = pick.dataset.pick; if (raw.get("pin_" + pid, "") && !unlocked[pid]) { pendingPin = pid; render(); } else enter(pid); return; }
     if (e.target.closest("[data-back]")) { e.preventDefault(); pendingPin = null; render(); return; }
@@ -459,7 +491,7 @@ ${DS.moneyCards}
     if (del) { const list = store.get("custom", []); list.splice(+del.dataset.del, 1); store.set("custom", list); render(); return; }
     const b = e.target.closest("[data-f]");
     if (b) { F[b.dataset.f] = b.dataset.v; if (location.hash.startsWith("#all/")) { history.replaceState(null, "", "#all"); } render(); return; }
-    if (e.target.id === "resetRates") { rates = Object.assign({}, RATES_DEFAULT); store.set("rates", {}); render(); }
+    if (e.target.id === "resetRates") { store.set("rates", {}); loadRates(); render(); return; }
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
@@ -467,8 +499,9 @@ ${DS.moneyCards}
     else if (t.dataset.k) { store.set(t.dataset.k, t.checked); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (t.dataset.status) { store.set("status_" + t.dataset.status, t.value); }
     else if (t.id === "sort") { F.sort = t.value; render(); }
-    else if (t.dataset.rate) { const v = parseFloat(t.value); if (v > 0) { rates[t.dataset.rate] = v; store.set("rates", rates); const y = window.scrollY; render(); window.scrollTo(0, y); } }
+    else if (t.dataset.rate) { const v = parseFloat(t.value); if (v > 0) { const m = store.get("rates", {}); m[t.dataset.rate] = v; store.set("rates", m); loadRates(); const y = window.scrollY; render(); window.scrollTo(0, y); } }
   });
+  refreshLiveRates();
   window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
   render();
 })();
