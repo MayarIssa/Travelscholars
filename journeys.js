@@ -58,6 +58,16 @@ const FUNDING = {
     "Take IELTS (6.5) or TOEFL (90)",
     "Do the TUHH online pre-check and application between 1 Dec 2026 and 1 Mar 2027 (free)",
     "Receive the admission letter" ] },
+  "tub-cs": { how: "none", text: "No scholarship needed: no tuition. Admission is enough; you live on the blocked account.", apply: [
+    "Take IELTS (6.5) or TOEFL iBT (87)",
+    "Prepare a course list showing 36 credits of CS basics and 18 credits of maths",
+    "Apply to TU Berlin between 1 Dec 2026 and 28 Feb 2027 (April start) or 1 Jun and 31 Aug 2027 (October start)",
+    "Receive the admission letter (open admission)" ] },
+  "bht-ds": { how: "none", text: "No scholarship needed: no tuition. Admission is enough; you live on the blocked account.", apply: [
+    "Take IELTS (B2 level, 6.5 recommended)",
+    "Apply on uni-assist before the summer deadline (about mid July 2027) and pay the fee",
+    "Put your maths / statistics and CS ECTS list on the first pages",
+    "Receive the admission letter and send the IELTS by end of August" ] },
   "mun-cs": { how: "auto", text: "The money comes WITH admission, not from a separate scholarship: when a professor agrees to supervise you, your admission offer states the funding (about CAD 20,000 per year). There is nothing extra to apply for, but you MUST find the supervisor.", apply: [
     "Find 3 to 5 MUN Computer Science professors working on ML / generative AI",
     "Email each one: who you are, why their work, your project, CV and GitHub attached",
