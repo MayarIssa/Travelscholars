@@ -59,9 +59,10 @@ const FUNDING = {
     "Do the TUHH online pre-check and application between 1 Dec 2026 and 1 Mar 2027 (free)",
     "Receive the admission letter" ] },
   "tub-cs": { how: "none", text: "No scholarship needed: no tuition. Admission is enough; you live on the blocked account.", apply: [
-    "Take IELTS (6.5) or TOEFL iBT (87)",
+    "Take IELTS (6.5) or TOEFL iBT (86)",
+    "Request the VPD from uni-assist (about EUR 75, several weeks)",
     "Prepare a course list showing 36 credits of CS basics and 18 credits of maths",
-    "Apply to TU Berlin between 1 Dec 2026 and 28 Feb 2027 (April start) or 1 Jun and 31 Aug 2027 (October start)",
+    "Apply in tuPORT between 1 Dec 2026 and 28 Feb 2027 (April start) or 1 Jun and 31 Aug 2027 (October start)",
     "Receive the admission letter (open admission)" ] },
   "bht-ds": { how: "none", text: "No scholarship needed: no tuition. Admission is enough; you live on the blocked account.", apply: [
     "Take IELTS (B2 level, 6.5 recommended)",
