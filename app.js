@@ -560,6 +560,7 @@
         <h4 style="margin:10px 0 4px">Still missing</h4>
         ${miss.map((m, i) => `<div class="check ${m.done ? "done" : ""}"><input type="checkbox" data-miss="${p.id}|${i}" ${m.done ? "checked" : ""}><span class="txt" style="flex:1">${esc(m.text)}</span><button class="del" data-missdel="${p.id}|${i}" title="Remove">✕</button></div>`).join("") || '<p class="muted small">Nothing listed yet.</p>'}
         <form class="addrow addMiss" data-id="${p.id}"><input name="t" placeholder="Add what is still missing..." maxlength="160" required><button class="fbtn on" type="submit">Add</button></form>
+        ${DOC_FILES[profile] ? `<p class="small" style="margin:10px 0 0"><a href="#docs/${p.id}">📄 CV, motivation letter and records for this program</a></p>` : ""}
         <h4 style="margin:12px 0 4px">My note</h4>
         <textarea class="notes" data-note="${p.id}" placeholder="Login link, what I wrote, who I emailed...">${esc(store.get("note_" + p.id, ""))}</textarea>
       </div>`;
@@ -571,6 +572,86 @@
         <form class="addrow" id="startApp"><select name="pid" class="status-sel" style="flex:1">${notStarted.map((p) => `<option value="${p.id}">${p.flag} ${esc(p.uni)}: ${esc(p.prog)}</option>`).join("")}</select><button class="fbtn on" type="submit">Start</button></form>
         <p class="muted small" style="margin:6px 0 0">Or change the status on any program page.</p></div>
       ${started.length ? `<div class="apps-grid">${started.map(card).join("")}</div>` : '<p class="muted">No applications started yet.</p>'}`;
+  }
+
+  /* ---------- My documents: saved files, CV and motivation letter per program ---------- */
+  let docKey = null, docKeyFor = null, docBusy = false;
+  const b64u = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (s.length % 4)) % 4)), (c) => c.charCodeAt(0));
+  async function decryptFile(name) {
+    const r = await fetch("files/" + name);
+    if (!r.ok) throw new Error("missing");
+    const buf = new Uint8Array(await r.arrayBuffer());
+    return crypto.subtle.decrypt({ name: "AES-GCM", iv: buf.slice(0, 12) }, docKey, buf.slice(12));
+  }
+  async function unlockDocs(s) {
+    try {
+      docKey = await crypto.subtle.importKey("raw", b64u(s.trim()), "AES-GCM", false, ["decrypt"]);
+      await decryptFile("check.bin"); docKeyFor = profile; return true;
+    } catch (e) { docKey = null; docKeyFor = null; return false; }
+  }
+  const docsReady = () => docKey && docKeyFor === profile;
+  function ensureDocKey() {
+    const k = store.get("docs_key", "");
+    if (!k || docsReady() || docBusy || !window.crypto || !crypto.subtle) return;
+    docBusy = true;
+    unlockDocs(k).then((ok) => { docBusy = false; if (ok && (location.hash || "").startsWith("#docs")) { const y = window.scrollY; render(); window.scrollTo(0, y); } });
+  }
+  const fmtLong = (d) => d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  function printHtml(title, css, inner) {
+    const w = window.open("", "_blank");
+    if (!w) { alertBox("Please allow pop-ups for this site to download the PDF."); return; }
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${css}</style></head><body>${inner}</body></html>`);
+    w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 450);
+  }
+  const fileTag = (p) => (p.uni.split(" (")[0] + " " + p.prog.replace(/^M\.Sc\.\s*/, "")).replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 60);
+  function cvFor(p) {
+    const me = CV_ME[profile];
+    printHtml(`${me.name.replace(/ /g, "_")}_CV_${fileTag(p)}`, CV_CSS,
+      `<h1>${me.name}</h1><div class="contact">${me.contact}</div><h2>Profile</h2><p>${esc(me.profile(docFocus(p)))}</p>${me.body}`);
+  }
+  const letterText = (p) => store.get("letter_" + p.id, "") || letterDefault(p, CV_ME[profile].name);
+  function letterFor(p) {
+    const me = CV_ME[profile];
+    const paras = letterText(p).split(/\n\s*\n/).map((x) => `<p>${esc(x.trim())}</p>`).join("");
+    printHtml(`${me.name.replace(/ /g, "_")}_Motivation_Letter_${fileTag(p)}`, LETTER_CSS,
+      `<div class="top"><div><b>${me.name}</b><br>Alexandria, Egypt<br>Myar.issa2003@gmail.com</div><div style="text-align:right">${fmtLong(new Date())}<br><br>Admissions Committee<br>${esc(p.prog)}<br>${esc(p.uni)}</div></div>
+       <p class="subj">Motivation Letter: ${esc(p.prog)}</p>${paras}`);
+  }
+  function pageDocs(arg) {
+    const files = DOC_FILES[profile];
+    if (!files || !CV_ME[profile]) return `<h1>My documents</h1><p class="lead">No documents saved for ${esc(prof().name)} yet.</p>`;
+    ensureDocKey();
+    const ready = docsReady();
+    const fileRow = (d) => `<div class="doc-row"><div><b>${esc(d.t)}</b><div class="muted small">${esc(d.n)} (${d.kb >= 1024 ? (d.kb / 1024).toFixed(1) + " MB" : d.kb + " KB"})</div></div>
+      <div class="doc-btns">${ready ? `<button class="fbtn" data-docopen="${d.f}">Open</button><button class="fbtn on" data-docdl="${d.f}|${esc(d.fn)}">Download</button>` : '<span class="muted small">🔒 Locked</span>'}</div></div>`;
+    const ids = new Set(PROGRAMS.filter((p) => statusOf(p.id) !== "Not started").map((p) => p.id));
+    files.forEach((d) => { if (d.g !== "gen" && byId(d.g)) ids.add(d.g); });
+    if (arg && byId(arg)) ids.add(arg);
+    const progs = [...ids].map(byId).sort((a, b) => (a.id === arg ? -1 : b.id === arg ? 1 : a.rankAll - b.rankAll));
+    const others = PROGRAMS.filter((p) => !ids.has(p.id)).sort((a, b) => a.rankAll - b.rankAll);
+    const progCard = (p) => {
+      const own = files.filter((d) => d.g === p.id);
+      return `<div class="card doc-prog" id="doc-${p.id}"><h3>${p.flag} ${esc(p.uni)}<div class="muted small" style="font-weight:400">${esc(p.prog)} · ${esc(statusOf(p.id))}</div></h3>
+        <div class="doc-row"><div><b>CV for this program</b><div class="muted small">Your CV with the profile line matched to ${esc(docFocus(p))}.</div></div><div class="doc-btns"><button class="fbtn on" data-gencv="${p.id}">Download PDF</button></div></div>
+        <details class="doc-letter" ${store.get("letter_" + p.id, "") ? "open" : ""}><summary><b>Motivation letter for this program</b> <span class="muted small">(tap to read or edit)</span></summary>
+          <textarea class="notes letter-box" data-letter="${p.id}">${esc(letterText(p))}</textarea>
+          <p class="small muted" style="margin:4px 0">Edits are saved in your profile. ${store.get("letter_" + p.id, "") ? '<button class="fbtn" data-letterreset="' + p.id + '">Reset to the original text</button>' : ""}</p></details>
+        <div class="doc-row"><div><b>Motivation letter PDF</b><div class="muted small">One page, dated today, addressed to this program.</div></div><div class="doc-btns"><button class="fbtn on" data-genletter="${p.id}">Download PDF</button></div></div>
+        ${own.map(fileRow).join("")}</div>`;
+    };
+    return `
+      <h1>My documents</h1>
+      <p class="lead">Your general papers in one place, plus a CV, a motivation letter and the application record for each program. When you press Download PDF, choose "Save as PDF" in the print window.</p>
+      ${ready ? "" : `<div class="card" style="max-width:560px"><h3>🔒 Unlock your saved files</h3>
+        <p class="small muted">Your certificates and records are stored encrypted. Paste your documents key once; it is saved in your profile and synced to your other devices.</p>
+        <form id="docKeyForm" class="addrow"><input name="k" type="password" placeholder="Documents key" required minlength="20"><button class="fbtn on" type="submit">Unlock</button></form>
+        <p id="docKeyMsg" class="small" style="color:var(--pay)"></p></div>`}
+      <h2>General documents</h2>
+      <div class="card">${files.filter((d) => d.g === "gen").map(fileRow).join("")}</div>
+      <h2>Per program</h2>
+      <div class="card"><form class="addrow" id="docPick"><select name="pid" class="status-sel" style="flex:1">${others.map((p) => `<option value="${p.id}">${p.flag} ${esc(p.uni)}: ${esc(p.prog)}</option>`).join("")}</select><button class="fbtn on" type="submit">Show documents</button></form></div>
+      <div class="apps-grid">${progs.map(progCard).join("")}</div>`;
   }
 
   function pageChecklist() {
@@ -727,12 +808,14 @@ ${DS.moneyCards}
     else if (page === "deadlines") html = pageDeadlines();
     else if (page === "checklist") html = pageChecklist();
     else if (page === "apps") html = pageApps();
+    else if (page === "docs") { html = pageDocs(arg); tab = "docs"; }
     else if (page === "money") html = pageMoney();
     else if (page === "profile") html = pageSettings();
     else if (page === "compare") html = pageCompare();
     else if (page === "p") { html = pageProgram(arg); tab = "all"; }
     else { html = pageHome(); tab = "home"; }
     $("#app").innerHTML = html + cmpBar();
+    if (page === "docs" && arg) { const el = document.getElementById("doc-" + arg); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
     if (page === "money" && arg === "daad") { const el = $("#daad"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
     document.querySelectorAll("#tabs a").forEach((a) => a.classList.toggle("on", a.dataset.tab === tab));
     topActions();
@@ -763,6 +846,11 @@ ${DS.moneyCards}
       const list = store.get("miss_" + id, []); list.push({ text: t, done: false }); store.set("miss_" + id, list);
       const y = window.scrollY; render(); window.scrollTo(0, y);
       const inp = document.querySelector(`.addMiss[data-id="${id}"] input`); if (inp) inp.focus();
+    } else if (f.id === "docKeyForm") {
+      const k = f.k.value.trim(); $("#docKeyMsg").textContent = "Checking...";
+      unlockDocs(k).then((ok) => { if (ok) { store.set("docs_key", k); render(); } else { const m = $("#docKeyMsg"); if (m) m.textContent = "That key did not work. Check it and try again."; } });
+    } else if (f.id === "docPick") {
+      location.hash = "#docs/" + f.elements.pid.value;
     } else if (f.id === "startApp") {
       const id = f.elements.pid.value; if (!id) return;
       store.set("status_" + id, "Preparing"); render();
@@ -774,6 +862,7 @@ ${DS.moneyCards}
   });
   document.addEventListener("input", (e) => {
     if (e.target.dataset.note) store.set("note_" + e.target.dataset.note, e.target.value);
+    if (e.target.dataset.letter) store.set("letter_" + e.target.dataset.letter, e.target.value);
   });
   document.addEventListener("click", (e) => {
     const cb = e.target.closest("[data-compare]");
@@ -801,6 +890,23 @@ ${DS.moneyCards}
     if (e.target.closest("[data-switch]")) { delete unlocked[profile]; saveUnlocked(); profile = null; raw.del("current"); render(); window.scrollTo(0, 0); return; }
     if (e.target.closest("[data-copy-code]")) { try { navigator.clipboard.writeText(syncCode()); alertBox("Sync code copied"); } catch (err) { alertBox(syncCode()); } return; }
     if (e.target.id === "removePin") { raw.del("pin_" + profile); render(); return; }
+    const gcv = e.target.closest("[data-gencv]"); if (gcv) { cvFor(byId(gcv.dataset.gencv)); return; }
+    const glt = e.target.closest("[data-genletter]"); if (glt) { letterFor(byId(glt.dataset.genletter)); return; }
+    const lrs = e.target.closest("[data-letterreset]"); if (lrs) { store.set("letter_" + lrs.dataset.letterreset, ""); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
+    const dop = e.target.closest("[data-docopen]");
+    if (dop) {
+      const w = window.open("", "_blank");
+      decryptFile(dop.dataset.docopen).then((buf) => { const u = URL.createObjectURL(new Blob([buf], { type: "application/pdf" })); if (w) w.location = u; else location.href = u; })
+        .catch(() => { if (w) w.close(); alertBox("Could not open this file."); });
+      return;
+    }
+    const ddl = e.target.closest("[data-docdl]");
+    if (ddl) {
+      const [f, fn] = ddl.dataset.docdl.split("|");
+      decryptFile(f).then((buf) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([buf], { type: "application/pdf" })); a.download = fn; document.body.appendChild(a); a.click(); a.remove(); })
+        .catch(() => alertBox("Could not download this file."));
+      return;
+    }
     const md = e.target.closest("[data-missdel]");
     if (md) { const [id, i] = md.dataset.missdel.split("|"); const list = store.get("miss_" + id, []); list.splice(+i, 1); store.set("miss_" + id, list); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const del = e.target.closest("[data-del]");
