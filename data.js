@@ -378,7 +378,7 @@ const PROGRAMS = [
     academic: "Very strong record, research experience, 3 strong letters, research-focused statement.",
     chance: "Low", rankAll: 19, rankSec: 4,
     why: "Top 10 program, fully funded, and accepts MOI.",
-    watch: "Very competitive. Apply only with strong letters and a clear research story (your diffusion model project).",
+    watch: "Very competitive. Apply only with strong letters and a clear research story (your Mentoro recommendation project).",
     link: "https://grad.gatech.edu/english-proficiency",
     cur: "USD", tuitionFree: true,
     tuitionLine: "You don't pay anything for the university. PhD students get tuition covered.",
@@ -389,7 +389,7 @@ const PROGRAMS = [
     blocked: null,
     proof: "For the I-20 you show first-year costs minus your funding.",
     bring: [["Application fee", 85, true], ["Visa + SEVIS + integrity fee", 785, false], ["Flight", 1000, true], ["Setup money", 2500, true]],
-    docs: ["MOI letter or transcript note", "3 strong recommendation letters", "Research statement of purpose", "Academic CV", "Writing sample (diffusion model report)"],
+    docs: ["MOI letter or transcript note", "3 strong recommendation letters", "Research statement of purpose", "Academic CV", "Writing sample (Mentoro project report)"],
   },
   {
     id: "lakehead-ai", rank: { world: "1001 to 1200", country: "=28 of 34 in Canada", sort: 1001 }, sec: "na", country: "Canada", flag: "🇨🇦",
@@ -430,7 +430,7 @@ const PROGRAMS = [
     academic: "Strong CS degree, a professor who agrees to supervise you, strong letters and a research project.",
     chance: "Low to Medium", rankAll: 14, rankSec: 1,
     why: "Best funding of everything found: the studentship is much bigger than tuition. Top AI research university.",
-    watch: "You need a supervisor first. Email HKUST CSE professors in ML now with your CV and the diffusion model project.",
+    watch: "You need a supervisor first. Email HKUST CSE professors in ML now with your CV and the Mentoro project.",
     link: "https://cse.hkust.edu.hk/pg/admissions/faq/",
     cur: "HKD", tuitionFree: false,
     tuitionLine: "You pay tuition of HKD 47,000 per year, but your studentship pays it and leaves you about HKD 182,000 per year.",
@@ -557,7 +557,7 @@ const PROGRAMS = [
     chance: "Medium", rankAll: 10, rankSec: 10,
     accept: "Depends on how many statistics / machine learning and maths credits your transcript shows. A CS degree without a clear statistics or data science focus may not be eligible: email the department with your transcript first.",
     why: "Public, NO tuition (only about EUR 170 semester fee), MOI officially accepted, you apply directly, and LMU is #2 in Germany and #41 in the world.",
-    watch: "Eligibility needs a statistics / data science focus in your bachelor's: list your statistics, probability, machine learning and data courses (and the diffusion model project). Munich is expensive and you need the blocked account. The April 2027 deadline is 15 Nov 2026.",
+    watch: "Eligibility needs a statistics / data science focus in your bachelor's: list your statistics, probability, machine learning and data courses (and the Mentoro recommendation project). Munich is expensive and you need the blocked account. The April 2027 deadline is 15 Nov 2026.",
     link: "https://www.stat.lmu.de/en/studies/interested-master/",
     cur: "EUR", tuitionFree: true,
     tuitionLine: "No tuition. You only pay the semester fee of about EUR 170 every 6 months.",
@@ -1092,7 +1092,7 @@ const CHECKLIST = [
     ["cv-acad", "Academic CV (TA role, projects, ECPC, AI hackathon at the top)", "Everyone else"],
     ["abstract", "Graduation project abstract (1 to 2 pages)", "Passau"],
     ["github", "GitHub cleaned up with your best repositories pinned", "THWS, funded programs"],
-    ["writing", "Writing sample: diffusion model project report", "PhD and research programs"],
+    ["writing", "Writing sample: Mentoro project report", "PhD and research programs"],
     ["passport", "Passport valid for the whole study period", "Everyone"],
     ["photos", "Biometric photos", "Visa"],
   ]},
@@ -1120,7 +1120,7 @@ const CHECKLIST = [
 
 const MAIN_TIPS = `
         <div class="card"><h3>Recommendation letters</h3><ul class="list-plain small"><li>Ask 4 to 6 weeks before the first deadline.</li><li>Give each professor your CV, transcript, the list of programs and deadlines, and 3 things you want them to mention.</li><li>Use your university email and their official email in portals.</li></ul></div>
-        <div class="card"><h3>Motivation letter (Germany, Hungary, Italy)</h3><ul class="list-plain small"><li>One page. Why AI, why this university, what you built (diffusion model, Mentoro, CareChart, Nour HR).</li><li>Name 1 or 2 courses from their curriculum.</li><li>End with your plan after the degree.</li></ul></div>
+        <div class="card"><h3>Motivation letter (Germany, Hungary, Italy)</h3><ul class="list-plain small"><li>One page. Why AI, why this university, what you built (Mentoro, CareChart, Nour HR).</li><li>Name 1 or 2 courses from their curriculum.</li><li>End with your plan after the degree.</li></ul></div>
         <div class="card"><h3>Statement of purpose (funded programs)</h3><ul class="list-plain small"><li>Focus on research: a problem you care about and how you worked on it.</li><li>Name the professors you want to work with and why.</li><li>Mention your TA experience for assistantships.</li></ul></div>
         <div class="card"><h3>Email to a possible supervisor</h3><ul class="list-plain small"><li>Subject: Prospective MSc student, Fall 2027, interest in your work on [topic].</li><li>5 to 7 lines: who you are, one paper of theirs you read, your matching project, CV and GitHub attached.</li><li>Follow up once after 10 days.</li></ul></div>
 `;

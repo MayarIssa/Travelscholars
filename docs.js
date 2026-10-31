@@ -11,52 +11,89 @@ const CV_ME = {
   mayar: {
     name: "Mayar Mohamed Issa",
     contact: "Alexandria, Egypt &nbsp;|&nbsp; Myar.issa2003@gmail.com &nbsp;|&nbsp; linkedin.com/in/mayar-issa<br>github.com/MayarIssa &nbsp;|&nbsp; mayar-issa.vercel.app",
-    profile: (focus) => `Computer Science graduate from Pharos University in Alexandria (Excellent with Honors). I studied in English, enjoyed the machine learning and maths courses the most, and spent the last year as a Teaching Assistant. I also build web apps in my free time and freelance as a developer. Now I want to focus on ${focus}.`,
+    profile: (focus) => `Computer Science graduate from Pharos University in Alexandria with Excellent with Honors (CGPA 3.76 / 4.00), studied fully in English. My strongest courses were machine learning and the maths behind it. I spent a year teaching labs as a Teaching Assistant and I build and ship full stack web apps, from the Figma design to the live site. I now want to go deeper into ${focus}.`,
     body: `
 <h2>Education</h2>
-<div class="blk"><div class="row"><b>B.Sc. in Computer Science, Pharos University in Alexandria</b><span class="r">2021 to 2025</span></div>
-Faculty of Computer Science and Artificial Intelligence, taught in English<br>
-CGPA: 3.7621 / 4.00 (88.99%), Excellent with Honors, 140 credit hours<br>
-Graduation project: Mentoro (grade A)
-<ul><li>Machine Learning (94), Data Science Methodology (90), Intelligent Systems (89), Introduction to AI (85), Introduction to Data Sciences (82), Robotics (96)</li>
-<li>Numerical Computations (97), Linear Algebra (91), Discrete Structures (89), Probability and Statistics (87), Calculus II (84)</li>
-<li>Compiler and Language Theory (97), Healthcare Database Systems (95), System Programming (94), Advanced Programming (91)</li></ul></div>
-<div class="blk"><div class="row"><b>High School Diploma, El Quds American School, Alexandria</b><span class="r">2021</span></div>GPA: 3.9 / 4.0</div>
+<div class="blk">
+<div class="row"><b>B.Sc. in Computer Science, Pharos University in Alexandria</b><span class="r">Oct 2021 to Jul 2025</span></div>
+<span class="sub">Faculty of Computer Science and Artificial Intelligence, taught and assessed in English</span><br>
+CGPA 3.7621 / 4.00 (88.99%), Excellent with Honors, 140 credit hours. Graduation project: Mentoro (grade A)
+<ul>
+<li><b>AI and data:</b> Machine Learning (94), Data Science Methodology (90), Intelligent Systems (89), Robotics (96), Introduction to AI (85), Introduction to Data Sciences (82)</li>
+<li><b>Mathematics:</b> Numerical Computations (97), Linear Algebra (91), Discrete Structures (89), Probability and Statistics (87), Calculus II (84)</li>
+<li><b>Computing:</b> Compiler and Language Theory (97), Software Quality and Testing (95), Healthcare Database Systems (95), System Programming (94), Advanced Programming (91)</li>
+</ul>
+</div>
+<div class="blk">
+<div class="row"><b>High School Diploma, El Quds American School, Alexandria</b><span class="r">2021</span></div>GPA 3.9 / 4.0
+</div>
+
 <h2>Experience</h2>
-<div class="blk"><div class="row"><b>Teaching Assistant, Pharos University in Alexandria</b><span class="r">Nov 2025 to Sep 2026</span></div>
-<ul><li>Taught labs for Programming 1, System Programming, Compiler Design and Human-Computer Interaction (Figma and Flutter)</li>
-<li>Prepared lab sheets, quizzes and practical exams and graded student projects</li>
-<li>Helped review exam blueprints for several CS courses as part of the faculty's quality work</li></ul></div>
-<div class="blk"><div class="row"><b>Full Stack Developer (Freelance), Sublime+</b><span class="r">Aug 2026 to now</span></div>
-<ul><li>Built the company website (sublime-plus.com) with Next.js, hosted on Vercel and Cloudflare, and set up Search Console and Analytics</li>
-<li>Made an interactive 3D mascot for the landing page with React Three Fiber and cut the model size from about 70 MB to 10 MB</li>
-<li>Tested and compared image and video generation models for the team (quality, cost, speed)</li></ul></div>
+<div class="blk">
+<div class="row"><b>Teaching Assistant, Pharos University in Alexandria</b><span class="r">Nov 2025 to Sep 2026</span></div>
+<span class="sub">Faculty of Computer Science and Artificial Intelligence</span>
+<ul>
+<li>Ran weekly labs for Programming 1, System Programming, Compiler Design and Human-Computer Interaction (Figma and Flutter)</li>
+<li>Wrote lab sheets, self-study packets, quizzes and practical exams, and graded labs and student projects</li>
+<li>Helped the faculty's quality team check exam blueprints for several CS courses against each topic's contact hours</li>
+</ul>
+</div>
+<div class="blk">
+<div class="row"><b>Full Stack Developer (Freelance), Sublime+</b><span class="r">Aug 2026 to now</span></div>
+<span class="sub">AI marketing and content agency with clients in the US, Europe and the Middle East</span>
+<ul>
+<li>Built and launched the company website (sublime-plus.com) in Next.js on Vercel and Cloudflare, with Search Console, Analytics and a working sitemap</li>
+<li>Added an interactive 3D mascot with React Three Fiber and cut the 3D model from about 70 MB to 10 MB (Draco compression, JPEG textures) so the page loads fast</li>
+<li>Tested and compared image and video generation models on quality, cost and speed, and presented recommendations to the team</li>
+</ul>
+</div>
+
 <h2>Projects</h2>
-<div class="blk"><div class="row"><b>Mentoro: One-to-One Guidance Platform with AI Assistance for Adaptive Course Recommendation</b><span class="r">2024 to 2025</span></div>
-Graduation project, team of six, supervised by Dr. Soha Ahmed. Live at mentoro2.vercel.app
-<ul><li>A mentoring platform that suggests courses, tasks and mentors to learners based on their goals and progress</li>
-<li>I designed the whole UI/UX in Figma and worked on the frontend (Next.js, TypeScript, Tailwind CSS): home page, profiles and mentor and mentee connections</li></ul></div>
-<div class="blk"><div class="row"><b>Image Generation with Diffusion Models</b><span class="r">Python</span></div><ul><li>Trained a diffusion model to generate images on the CIFAR-10 dataset</li></ul></div>
-<div class="blk"><div class="row"><b>BuildFin</b><span class="r">2026</span></div><ul><li>Web app for building owners to record residents' payments, see monthly totals and track expenses (building11.vercel.app)</li></ul></div>
-<div class="blk"><div class="row"><b>Nour HR</b><span class="r">2026</span></div><ul><li>Arabic and English HR system for a pharmacy with login and staff records (hr-pharmacy-nine.vercel.app)</li></ul></div>
-<div class="blk"><div class="row"><b>Ozouma (in progress)</b><span class="r">2026</span></div><ul><li>Hands-free cooking app in Arabic and English: say "next" to move between steps, timers start by themselves and the screen stays on. Website in Next.js and a Flutter app</li></ul></div>
+<div class="blk">
+<div class="row"><b>Mentoro: One-to-One Guidance Platform with AI Assistance for Adaptive Course Recommendation</b><span class="r">2024 to 2025</span></div>
+<span class="sub">Graduation project, team of six, supervised by Dr. Soha Ahmed, live at mentoro2.vercel.app</span>
+<ul>
+<li>Mentoring platform that recommends courses, tasks and mentors to learners based on their goals and progress, with roadmaps, quizzes and a chatbot</li>
+<li>Designed the full UI/UX in Figma and built the web frontend parts I owned (home page, profiles, mentor and mentee connections) in Next.js, TypeScript and Tailwind CSS</li>
+</ul>
+</div>
+<div class="blk">
+<div class="row"><b>BuildFin: building finance app</b><span class="r">2026</span></div>
+<ul><li>Lets a building owner record residents' payments, see monthly totals and track expenses like electricity and elevator maintenance (building11.vercel.app, MongoDB)</li></ul>
+</div>
+<div class="blk">
+<div class="row"><b>Nour HR: pharmacy HR system</b><span class="r">2026</span></div>
+<ul><li>Arabic and English HR system for a pharmacy with sign-in and staff records (hr-pharmacy-nine.vercel.app)</li></ul>
+</div>
+<div class="blk">
+<div class="row"><b>Ozouma: hands-free cooking app (in progress)</b><span class="r">2026</span></div>
+<ul><li>Arabic and English recipe app where you say "next" to move between steps, timers start by themselves and the screen stays on. Next.js website and Flutter app</li></ul>
+</div>
+
 <h2>Certificates and Courses</h2>
-<ul><li>Cisco CCNA: Introduction to Networks; Switching, Routing and Wireless Essentials; Enterprise Networking, Security and Automation (Skills Plus Egypt, 2025)</li>
+<ul>
+<li>Cisco CCNA: Introduction to Networks; Switching, Routing and Wireless Essentials; Enterprise Networking, Security and Automation (Skills Plus Egypt, 2025)</li>
 <li>Back-End Development Diploma (.NET Core), Route Academy (2024)</li>
 <li>innovEgypt program, ITIDA and TIEC: 45 hour course and a startup project</li>
-<li>ST Smart Robotics with AI summer program (2023)</li></ul>
+<li>ST Smart Robotics with AI summer program (2023)</li>
+</ul>
+
 <h2>Competitions and Events</h2>
-<ul><li>ICPC ECPC Qualifications 2023: Honorable Mention. Took part again in 2024</li>
+<ul>
+<li>ICPC ECPC Qualifications 2023: Honorable Mention, and took part again in 2024</li>
 <li>AUF Regional Hackathon on Artificial Intelligence (March 2023)</li>
-<li>Symposium "AI and the Research Frontier", Pharos University (February 2026)</li></ul>
+<li>Symposium "AI and the Research Frontier", Pharos University (February 2026)</li>
+</ul>
+
 <h2>Skills</h2>
 <p><b>Programming:</b> Python, TypeScript, JavaScript, C#, SQL, Dart<br>
-<b>Data and ML:</b> machine learning basics, statistics, data preparation, Jupyter<br>
-<b>Web:</b> Next.js, React, Tailwind CSS, .NET Core, Supabase, MongoDB, SQL Server<br>
+<b>Data and ML:</b> machine learning fundamentals, statistics, data preparation and analysis in Python<br>
+<b>Web and backend:</b> Next.js, React, Tailwind CSS, .NET Core, Supabase, MongoDB, SQL Server<br>
 <b>Design:</b> Figma, UI/UX, Blender<br>
 <b>Tools:</b> Git and GitHub, Vercel, Cloudflare</p>
+
 <h2>Languages</h2>
-<p>Arabic (native), English (fluent, my whole degree was in English)</p>`,
+<p>Arabic (native), English (fluent, my whole degree was taught in English)</p>`,
   },
   rodayna: {
     name: "Rodayna Emad Mohamed Abdelkader Abdelmawla",
@@ -120,7 +157,7 @@ h1{font-size:19pt;text-align:center;font-weight:bold;letter-spacing:.3px}
 .contact{text-align:center;font-size:10pt;margin:3px 0 4px}
 h2{font-size:11pt;font-weight:bold;text-transform:uppercase;border-bottom:1px solid #000;margin:11px 0 5px;padding-bottom:1px}
 .row{display:flex;justify-content:space-between;gap:10px}.r{white-space:nowrap}
-ul{margin:2px 0 6px 17px}li{margin:1px 0}.blk{margin-bottom:6px;break-inside:avoid}`;
+ul{margin:2px 0 6px 17px}li{margin:1px 0}.blk{margin-bottom:7px;break-inside:avoid}.sub{font-style:italic}`;
 
 /* what the CV and letter say I want to focus on, by the program's fields */
 function docFocus(p) {
@@ -153,7 +190,7 @@ function letterDefault(p, name) {
     "Dear Members of the Admissions Committee,",
     `I am writing to apply for the ${p.prog} at ${p.uni}. I graduated in July 2025 with a B.Sc. in Computer Science from Pharos University in Alexandria, Excellent with Honors (CGPA 3.76 out of 4.00), and over the past year I have become sure that I want to build my career in ${docFocus(p)}.`,
     "My interest really started in my third year, in the Machine Learning course. Until then most of my courses were about writing programs that follow rules I define myself. Seeing a model learn those rules from data instead felt completely different, and I finished the course with 94, one of my best grades. After that I paid more attention to the mathematics behind it. I did well in Numerical Computations (97), Linear Algebra (91) and Probability and Statistics (87), and courses like Data Science Methodology and Intelligent Systems showed me how much work goes into a dataset before any model is trained.",
-    "For my graduation project, Mentoro, our team of six built a mentoring platform that recommends courses, tasks and mentors to learners based on their goals and progress. I designed the full interface in Figma and built a large part of the web frontend. I noticed that the hard questions were never about the interface. They were about data: what we actually know about a learner, how to measure progress, and how to tell whether a recommendation is good. I could not answer those questions properly with what I knew, and that is one of the main reasons I am applying. On my own I also worked on image generation with diffusion models on CIFAR-10, which taught me how much patience training and debugging a model really takes.",
+    "For my graduation project, Mentoro, our team of six built a mentoring platform that recommends courses, tasks and mentors to learners based on their goals and progress. I designed the full interface in Figma and built a large part of the web frontend. I noticed that the hard questions were never about the interface. They were about data: what we actually know about a learner, how to measure progress, and how to tell whether a recommendation is good. I could not answer those questions properly with what I knew, and that is one of the main reasons I am applying.",
     "After graduating, I worked for a year as a Teaching Assistant at my faculty, teaching labs in Programming 1, System Programming, Compiler Design and Human-Computer Interaction. Explaining the same idea to a full lab of students in different ways made my own understanding much more solid. Since August 2026 I also work as a freelance full stack developer for a small marketing agency, where part of my work is testing and comparing image and video generation models. Using these models every day made me want to understand how they work from the inside, not only how to call them.",
     why,
     "After the master's, I would like to work as a data scientist or machine learning engineer, ideally on recommendation and personalisation problems, especially in education, where I have already seen how much good guidance changes a learner's path.",
