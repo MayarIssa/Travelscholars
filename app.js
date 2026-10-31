@@ -553,9 +553,9 @@
         "Central LMU application (opens 2 Dec, deadline 15 Jan)"] },
     },
     rodayna: {
-      "hildesheim-da": { status: "Preparing", note: "First program to apply to (rolling admission, deadline 15 Dec 2026). Not filled in yet.", miss: [
-        "Postal address and phone for the form", "High school name, certificate date and mark", "Graduation project link (BloomTech report)",
-        "Upload CV", "Upload degree certificate and transcript", "Upload Graduation Statement (English proof)",
+      "hildesheim-da": { status: "Preparing", note: "Form filled in on 31 Oct 2026 with CV, degree and transcript, Graduation Statement and additional documents uploaded. Not submitted. Deadline 15 Dec 2026 (rolling, apply early).", miss: [
+        "Add street address and ZIP code", "Confirm phone and email", "Add school name, country, certificate date and mark",
+        "Scan the school certificate and upload it", "Add the BloomTech report link", "Confirm start date and minimum pass marks",
         "Set password and tick data protection", "Review everything and submit"] },
       "lmu-stats": { status: "Preparing", note: "Department deadline 15 Nov 2026, 11:59 pm CET. Not filled in yet.", miss: [
         "Fill the department application", "Upload diploma and transcript", "Upload Graduation Statement (English proof)",
