@@ -561,9 +561,10 @@
         "Fill the department application", "Upload diploma and transcript", "Upload Graduation Statement (English proof)",
         "Upload CV, certificates and course descriptions", "Motivation letter showing the data science focus", "Review and submit before 15 Nov",
         "Central LMU application (opens 2 Dec, deadline 15 Jan)"] },
-      "thws-ai": { status: "Preparing", note: "Non-EU: submit by 15 Nov 2026 (final 15 Dec). Needs a uni-assist VPD.", miss: [
-        "High school certificate (official English version)", "Request uni-assist VPD now (4 to 6 weeks)", "Email mai.fiw@thws.de about the Graduation Statement as English proof",
-        "Fill the THWS form version 08.10.2026", "Pay the EUR 50 fee", "Passport copy"] },
+      "thws-ai": { status: "Preparing", note: "THWS form (version 08.10.2026) filled in on 1 Nov 2026, not signed or submitted. Non-EU: submit by 15 Nov 2026 (final 15 Dec). Needs a uni-assist VPD.", miss: [
+        "High school certificate and grade transcript (official English version)", "Request uni-assist VPD now (4 to 6 weeks)", "Email mai.fiw@thws.de about the Graduation Statement as English proof",
+        "Add number of BloomTech group members and the report link to the form", "Confirm the grading scale bands", "Date and sign the form",
+        "Register on the Campus Portal and pay the EUR 50 fee", "Passport copy", "Upload everything and submit"] },
     },
   };
   /* each program is seeded only once per profile and never overwrites what the person changed */
