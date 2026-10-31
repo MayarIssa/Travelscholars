@@ -242,3 +242,12 @@ details.daad summary { cursor: pointer; list-style: none; }
 details.daad summary::-webkit-details-marker { display: none; }
 details.daad h4 { margin: 16px 0 4px; font-size: 15px; color: var(--accent); }
 details.daad ol.list-plain li { margin: 6px 0; }
+
+/* My applications */
+.apps-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); margin-top: 14px; }
+.app-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.app-head a { color: inherit; text-decoration: none; }
+.app-card .notes { min-height: 70px; }
+#startApp select { min-width: 0; }
+@media (max-width: 420px) { .apps-grid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .top-actions { gap: 5px; } .theme-btn { width: 32px; height: 32px; font-size: 15px; } .brand { gap: 7px; } .brand .logo { width: 28px; height: 28px; } .cl-btn .cl-word { display: none; } .who .sync-dot { display: none; } }

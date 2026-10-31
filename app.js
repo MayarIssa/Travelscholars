@@ -516,6 +516,58 @@
     return { total, done };
   }
 
+  /* ---------- My applications: what I started, what is still missing ---------- */
+  const SEED = {
+    mayar: {
+      "hildesheim-da": { status: "Preparing", note: "Form filled in on 31 Oct 2026, not submitted yet.", miss: [
+        "Fix last name to Mohamed Issa Mohamed Said", "Fix phone format to +20 1062100482", "Add school certificate date issued and mark",
+        "Scan El Quds diploma and upload it", "Add English certificate date issued", "Upload CV", "Upload degree certificate and transcript",
+        "Upload Graduation Statement (English proof)", "Upload additional documents (letter, certificates, course descriptions)",
+        "Set password and tick data protection", "Review everything and submit"] },
+      "lmu-stats": { status: "Preparing", note: "Form filled in on 31 Oct 2026, not submitted. Deadline 15 Nov 2026, 11:59 pm CET.", miss: [
+        "Upload diploma", "Upload transcript", "Upload Graduation Statement (English proof)", "Upload CV and certificates",
+        "Upload course descriptions", "Check German grade with the LMU conversion tool", "Review all pages and submit before 15 Nov",
+        "Central LMU application (opens 2 Dec, deadline 15 Jan)"] },
+    },
+  };
+  function seedApps() {
+    const s = SEED[profile];
+    if (!s || store.get("apps_seeded", false)) return;
+    Object.keys(s).forEach((id) => {
+      if (!byId(id)) return;
+      if (statusOf(id) === "Not started") raw.set(profile + "_status_" + id, s[id].status);
+      if (!store.get("note_" + id, "")) raw.set(profile + "_note_" + id, s[id].note);
+      if (!store.get("miss_" + id, []).length) raw.set(profile + "_miss_" + id, s[id].miss.map((t) => ({ text: t, done: false })));
+    });
+    store.set("apps_seeded", true);
+  }
+  function pageApps() {
+    seedApps();
+    const started = PROGRAMS.filter((p) => statusOf(p.id) !== "Not started").sort((a, b) => STATUSES.indexOf(statusOf(a.id)) - STATUSES.indexOf(statusOf(b.id)));
+    const notStarted = PROGRAMS.filter((p) => statusOf(p.id) === "Not started").sort((a, b) => a.rankAll - b.rankAll);
+    const card = (p) => {
+      const miss = store.get("miss_" + p.id, []), left = miss.filter((m) => !m.done).length, dl = nextDeadline(p);
+      return `<div class="card app-card">
+        <div class="app-head"><div><a href="#p/${p.id}"><b>${p.flag} ${esc(p.uni)}</b></a><div class="muted small">${esc(p.prog)}</div></div>
+          <select class="status-sel" data-status="${p.id}" data-rerender="1">${STATUSES.map((s) => `<option ${statusOf(p.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+        <p class="small" style="margin:6px 0">${dl && dl.d ? `⏰ ${esc(dl.t)}: <b>${fmtDate(dl.d)}</b> (${daysLeft(dl.d) + " days left"})` : dl ? `⏰ ${esc(dl.t)}` : "⏰ No upcoming deadline listed"}
+          &nbsp;<span class="chip ${left ? "pay" : "good"}">${left ? left + " still missing" : "Nothing missing"}</span></p>
+        <h4 style="margin:10px 0 4px">Still missing</h4>
+        ${miss.map((m, i) => `<div class="check ${m.done ? "done" : ""}"><input type="checkbox" data-miss="${p.id}|${i}" ${m.done ? "checked" : ""}><span class="txt" style="flex:1">${esc(m.text)}</span><button class="del" data-missdel="${p.id}|${i}" title="Remove">✕</button></div>`).join("") || '<p class="muted small">Nothing listed yet.</p>'}
+        <form class="addrow addMiss" data-id="${p.id}"><input name="t" placeholder="Add what is still missing..." maxlength="160" required><button class="fbtn on" type="submit">Add</button></form>
+        <h4 style="margin:12px 0 4px">My note</h4>
+        <textarea class="notes" data-note="${p.id}" placeholder="Login link, what I wrote, who I emailed...">${esc(store.get("note_" + p.id, ""))}</textarea>
+      </div>`;
+    };
+    return `
+      <h1>My applications</h1>
+      <p class="lead">Every program ${esc(prof().name)} has started, with what is still missing and a note for each one. Saved in your profile and synced to your other devices.</p>
+      <div class="card"><h3>➕ Start tracking a program</h3>
+        <form class="addrow" id="startApp"><select name="pid" class="status-sel" style="flex:1">${notStarted.map((p) => `<option value="${p.id}">${p.flag} ${esc(p.uni)}: ${esc(p.prog)}</option>`).join("")}</select><button class="fbtn on" type="submit">Start</button></form>
+        <p class="muted small" style="margin:6px 0 0">Or change the status on any program page.</p></div>
+      ${started.length ? `<div class="apps-grid">${started.map(card).join("")}</div>` : '<p class="muted">No applications started yet.</p>'}`;
+  }
+
   function pageChecklist() {
     const cp = checklistProgress();
     const apps = PROGRAMS.map((p) => ({ p, s: statusOf(p.id) }));
@@ -654,7 +706,7 @@ ${DS.moneyCards}
     if (!el) return;
     if (!profile) { el.innerHTML = themeBtn(); return; }
     const cp = checklistProgress();
-    el.innerHTML = `${themeBtn()}<a class="cl-btn" href="#checklist">✅ My checklist <span>${cp.done}/${cp.total}</span></a>
+    el.innerHTML = `${themeBtn()}<a class="cl-btn" href="#checklist">✅<span class="cl-word" style="background:none;padding:0;font-size:inherit"> My checklist</span> <span>${cp.done}/${cp.total}</span></a>
       <a class="who" href="#profile" style="--pc:${prof().color}" title="Profile"><span class="avatar sm">${esc(prof().name[0])}</span><span class="who-name">${esc(prof().name)}</span><span class="sync-dot ${syncStatus}" title="${esc(syncLabel())}"></span></a>`;
   }
 
@@ -669,6 +721,7 @@ ${DS.moneyCards}
     else if (page === "all") html = pageAll(arg);
     else if (page === "deadlines") html = pageDeadlines();
     else if (page === "checklist") html = pageChecklist();
+    else if (page === "apps") html = pageApps();
     else if (page === "money") html = pageMoney();
     else if (page === "profile") html = pageSettings();
     else if (page === "compare") html = pageCompare();
@@ -700,6 +753,14 @@ ${DS.moneyCards}
       raw.set("sync_" + profile, c); raw.set("syncAt_" + profile, ""); raw.set("syncDirty_" + profile, false);
       $("#linkMsg").textContent = "Linking...";
       pullNow(true).then(() => { const m = $("#linkMsg"); if (m) m.textContent = "✅ Linked. This device now shows the same data."; });
+    } else if (f.classList.contains("addMiss")) {
+      const t = f.t.value.trim(), id = f.dataset.id; if (!t) return;
+      const list = store.get("miss_" + id, []); list.push({ text: t, done: false }); store.set("miss_" + id, list);
+      const y = window.scrollY; render(); window.scrollTo(0, y);
+      const inp = document.querySelector(`.addMiss[data-id="${id}"] input`); if (inp) inp.focus();
+    } else if (f.id === "startApp") {
+      const id = f.elements.pid.value; if (!id) return;
+      store.set("status_" + id, "Preparing"); render();
     } else if (f.id === "addCustom") {
       const t = f.t.value.trim(); if (!t) return;
       const list = store.get("custom", []); list.push({ text: t, done: false }); store.set("custom", list); render();
@@ -735,6 +796,8 @@ ${DS.moneyCards}
     if (e.target.closest("[data-switch]")) { delete unlocked[profile]; saveUnlocked(); profile = null; raw.del("current"); render(); window.scrollTo(0, 0); return; }
     if (e.target.closest("[data-copy-code]")) { try { navigator.clipboard.writeText(syncCode()); alertBox("Sync code copied"); } catch (err) { alertBox(syncCode()); } return; }
     if (e.target.id === "removePin") { raw.del("pin_" + profile); render(); return; }
+    const md = e.target.closest("[data-missdel]");
+    if (md) { const [id, i] = md.dataset.missdel.split("|"); const list = store.get("miss_" + id, []); list.splice(+i, 1); store.set("miss_" + id, list); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const del = e.target.closest("[data-del]");
     if (del) { const list = store.get("custom", []); list.splice(+del.dataset.del, 1); store.set("custom", list); render(); return; }
     const b = e.target.closest("[data-f]");
@@ -745,7 +808,8 @@ ${DS.moneyCards}
     const t = e.target;
     if (t.dataset.custom) { const list = store.get("custom", []); list[+t.dataset.custom].done = t.checked; store.set("custom", list); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (t.dataset.k) { store.set(t.dataset.k, t.checked); const y = window.scrollY; render(); window.scrollTo(0, y); }
-    else if (t.dataset.status) { store.set("status_" + t.dataset.status, t.value); }
+    else if (t.dataset.miss) { const [id, i] = t.dataset.miss.split("|"); const list = store.get("miss_" + id, []); if (list[+i]) list[+i].done = t.checked; store.set("miss_" + id, list); const y = window.scrollY; render(); window.scrollTo(0, y); }
+    else if (t.dataset.status) { store.set("status_" + t.dataset.status, t.value); if (t.dataset.rerender) { const y = window.scrollY; render(); window.scrollTo(0, y); } }
     else if (t.id === "sort") { F.sort = t.value; render(); }
     else if (t.dataset.rate) { const v = parseFloat(t.value); if (v > 0) { const m = store.get("rates", {}); m[t.dataset.rate] = v; store.set("rates", m); loadRates(); const y = window.scrollY; render(); window.scrollTo(0, y); } }
   });
