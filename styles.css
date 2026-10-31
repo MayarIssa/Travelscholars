@@ -262,3 +262,4 @@ details.daad ol.list-plain li { margin: 6px 0; }
 .letter-box { min-height: 320px; margin-top: 8px; font-size: 14px; line-height: 1.45; }
 #docPick select, #startApp select { min-width: 0; width: 100%; max-width: 100%; }
 #docPick, #startApp { flex-wrap: nowrap; }
+a.fbtn { text-decoration: none; color: inherit; display: inline-block; } a.fbtn.on { color: #fff; }

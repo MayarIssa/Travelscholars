@@ -575,27 +575,6 @@
   }
 
   /* ---------- My documents: saved files, CV and motivation letter per program ---------- */
-  let docKey = null, docKeyFor = null, docBusy = false;
-  const b64u = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (s.length % 4)) % 4)), (c) => c.charCodeAt(0));
-  async function decryptFile(name) {
-    const r = await fetch("files/" + name);
-    if (!r.ok) throw new Error("missing");
-    const buf = new Uint8Array(await r.arrayBuffer());
-    return crypto.subtle.decrypt({ name: "AES-GCM", iv: buf.slice(0, 12) }, docKey, buf.slice(12));
-  }
-  async function unlockDocs(s) {
-    try {
-      docKey = await crypto.subtle.importKey("raw", b64u(s.trim()), "AES-GCM", false, ["decrypt"]);
-      await decryptFile("check.bin"); docKeyFor = profile; return true;
-    } catch (e) { docKey = null; docKeyFor = null; return false; }
-  }
-  const docsReady = () => docKey && docKeyFor === profile;
-  function ensureDocKey() {
-    const k = store.get("docs_key", "");
-    if (!k || docsReady() || docBusy || !window.crypto || !crypto.subtle) return;
-    docBusy = true;
-    unlockDocs(k).then((ok) => { docBusy = false; if (ok && (location.hash || "").startsWith("#docs")) { const y = window.scrollY; render(); window.scrollTo(0, y); } });
-  }
   const fmtLong = (d) => d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
   function printHtml(title, css, inner) {
     const w = window.open("", "_blank");
@@ -621,10 +600,8 @@
   function pageDocs(arg) {
     const files = DOC_FILES[profile];
     if (!files || !CV_ME[profile]) return `<h1>My documents</h1><p class="lead">No documents saved for ${esc(prof().name)} yet.</p>`;
-    ensureDocKey();
-    const ready = docsReady();
     const fileRow = (d) => `<div class="doc-row"><div><b>${esc(d.t)}</b><div class="muted small">${esc(d.n)} (${d.kb >= 1024 ? (d.kb / 1024).toFixed(1) + " MB" : d.kb + " KB"})</div></div>
-      <div class="doc-btns">${ready ? `<button class="fbtn" data-docopen="${d.f}">Open</button><button class="fbtn on" data-docdl="${d.f}|${esc(d.fn)}">Download</button>` : '<span class="muted small">🔒 Locked</span>'}</div></div>`;
+      <div class="doc-btns"><a class="fbtn" href="files/${encodeURIComponent(d.f)}" target="_blank" rel="noopener">Open</a><a class="fbtn on" href="files/${encodeURIComponent(d.f)}" download="${esc(d.fn)}">Download</a></div></div>`;
     const ids = new Set(PROGRAMS.filter((p) => statusOf(p.id) !== "Not started").map((p) => p.id));
     files.forEach((d) => { if (d.g !== "gen" && byId(d.g)) ids.add(d.g); });
     if (arg && byId(arg)) ids.add(arg);
@@ -642,11 +619,7 @@
     };
     return `
       <h1>My documents</h1>
-      <p class="lead">Your general papers in one place, plus a CV, a motivation letter and the application record for each program. When you press Download PDF, choose "Save as PDF" in the print window.</p>
-      ${ready ? "" : `<div class="card" style="max-width:560px"><h3>🔒 Unlock your saved files</h3>
-        <p class="small muted">Your certificates and records are stored encrypted. Paste your documents key once; it is saved in your profile and synced to your other devices.</p>
-        <form id="docKeyForm" class="addrow"><input name="k" type="password" placeholder="Documents key" required minlength="20"><button class="fbtn on" type="submit">Unlock</button></form>
-        <p id="docKeyMsg" class="small" style="color:var(--pay)"></p></div>`}
+      <p class=.lead">Your general papers in one place, plus a CV, a motivation letter and the application record for each program. For a generated CV or letter, press Download PDF and choose "Save as PDF" in the print window.</p>
       <h2>General documents</h2>
       <div class="card">${files.filter((d) => d.g === "gen").map(fileRow).join("")}</div>
       <h2>Per program</h2>
@@ -846,9 +819,6 @@ ${DS.moneyCards}
       const list = store.get("miss_" + id, []); list.push({ text: t, done: false }); store.set("miss_" + id, list);
       const y = window.scrollY; render(); window.scrollTo(0, y);
       const inp = document.querySelector(`.addMiss[data-id="${id}"] input`); if (inp) inp.focus();
-    } else if (f.id === "docKeyForm") {
-      const k = f.k.value.trim(); $("#docKeyMsg").textContent = "Checking...";
-      unlockDocs(k).then((ok) => { if (ok) { store.set("docs_key", k); render(); } else { const m = $("#docKeyMsg"); if (m) m.textContent = "That key did not work. Check it and try again."; } });
     } else if (f.id === "docPick") {
       location.hash = "#docs/" + f.elements.pid.value;
     } else if (f.id === "startApp") {
@@ -893,20 +863,6 @@ ${DS.moneyCards}
     const gcv = e.target.closest("[data-gencv]"); if (gcv) { cvFor(byId(gcv.dataset.gencv)); return; }
     const glt = e.target.closest("[data-genletter]"); if (glt) { letterFor(byId(glt.dataset.genletter)); return; }
     const lrs = e.target.closest("[data-letterreset]"); if (lrs) { store.set("letter_" + lrs.dataset.letterreset, ""); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
-    const dop = e.target.closest("[data-docopen]");
-    if (dop) {
-      const w = window.open("", "_blank");
-      decryptFile(dop.dataset.docopen).then((buf) => { const u = URL.createObjectURL(new Blob([buf], { type: "application/pdf" })); if (w) w.location = u; else location.href = u; })
-        .catch(() => { if (w) w.close(); alertBox("Could not open this file."); });
-      return;
-    }
-    const ddl = e.target.closest("[data-docdl]");
-    if (ddl) {
-      const [f, fn] = ddl.dataset.docdl.split("|");
-      decryptFile(f).then((buf) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([buf], { type: "application/pdf" })); a.download = fn; document.body.appendChild(a); a.click(); a.remove(); })
-        .catch(() => alertBox("Could not download this file."));
-      return;
-    }
     const md = e.target.closest("[data-missdel]");
     if (md) { const [id, i] = md.dataset.missdel.split("|"); const list = store.get("miss_" + id, []); list.splice(+i, 1); store.set("miss_" + id, list); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const del = e.target.closest("[data-del]");
