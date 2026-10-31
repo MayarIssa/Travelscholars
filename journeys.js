@@ -64,6 +64,13 @@ const FUNDING = {
     "Prepare a course list showing 36 credits of CS basics and 18 credits of maths",
     "Apply in tuPORT between 1 Dec 2026 and 28 Feb 2027 (April start) or 1 Jun and 31 Aug 2027 (October start)",
     "Receive the admission letter (open admission)" ] },
+  "tum-mmi": { how: "none", text: "No full scholarship is offered with the program: you pay EUR 28,000 tuition in 4 instalments and live on the blocked account. Ask the TUM LifeLong Learning team about any partial scholarships or discounts when you apply.", apply: [
+    "Take IELTS or TOEFL (or ask the admissions team whether your English-taught degree is enough)",
+    "Request the VPD from uni-assist",
+    "Prepare your CV, motivation letter and proof of work experience",
+    "Apply online between 1 Feb and 15 Aug 2027 (earlier is better for the visa)",
+    "Do the interview if shortlisted",
+    "Accept the offer and pay the first EUR 7,000 instalment" ] },
   "bht-ds": { how: "none", text: "No scholarship needed: no tuition. Admission is enough; you live on the blocked account.", apply: [
     "Take IELTS (B2 level, 6.5 recommended)",
     "Apply on uni-assist before the summer deadline (about mid July 2027) and pay the fee",

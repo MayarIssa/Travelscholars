@@ -409,7 +409,7 @@ const AYA_MONEY = `
 const DATASETS = {
   main: {
     programs: PROGRAMS, sections: SECTIONS, needsTest: NEEDS_TEST, excluded: DE_EXCLUDED, checklist: CHECKLIST,
-    fields: ["AI", "CS", "Data"],
+    fields: ["AI", "CS", "Data", "Business"],
     lead: "AI first, then CS and Data Science. Programs that accept an English-taught degree (MOI letter) instead of IELTS, plus a few IELTS options, all almost free or fully funded.",
     bestNote: "How it is ranked: 1) chance of admission with a 3.76 GPA (Mayar's profile), 2) money: free tuition or a stipend, 3) AI fit, 4) how soon you can start.",
     tips: MAIN_TIPS, moneyCards: MAIN_MONEY,
