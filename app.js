@@ -44,7 +44,25 @@
   let DS, PROGRAMS, SECTIONS, NEEDS_TEST, DE_EXCLUDED, CHECKLIST;
   function useDataset() {
     DS = DATASETS[(prof() && prof().data) || "main"];
+    const tw = typeof PROFILE_TWEAKS !== "undefined" && PROFILE_TWEAKS[profile];
+    if (tw) DS = tweakDataset(DS, tw);
     PROGRAMS = DS.programs; SECTIONS = DS.sections; NEEDS_TEST = DS.needsTest; DE_EXCLUDED = DS.excluded || []; CHECKLIST = DS.checklist;
+  }
+  /* a profile's own notes on a shared program list (copies, the shared data is never changed) */
+  function tweakText(s) {
+    const tw = typeof PROFILE_TWEAKS !== "undefined" && PROFILE_TWEAKS[profile];
+    if (!tw || !tw.swap || typeof s !== "string") return s;
+    return tw.swap.reduce((t, [re, to]) => t.replace(re, to), s);
+  }
+  function tweakDataset(base, tw) {
+    const deep = (v) => typeof v === "string" ? tweakText(v) : Array.isArray(v) ? v.map(deep) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, deep(x)])) : v;
+    const programs = base.programs.map((p) => Object.assign(deep(p), (tw.programs || {})[p.id] || {}));
+    const add = tw.checklistAdd || [];
+    const checklist = base.checklist.map((g) => ({ ...g, items: [
+      ...g.items.map((it) => [it[0], tweakText((tw.checklist || {})[it[0]] || it[1]), it[2]]),
+      ...add.filter((a) => a[0] === g.group).map((a) => a[1]),
+    ] }));
+    return Object.assign({}, base, { programs, checklist, tips: tweakText(base.tips), bestNote: tw.bestNote || tweakText(base.bestNote) });
   }
   useDataset();
 
@@ -480,7 +498,7 @@
   }
 
   function stepsCard(p) {
-    const steps = stepsFor(p);
+    const steps = stepsFor(p).map((x) => ({ ...x, t: tweakText(x.t) }));
     const done = steps.filter((_, i) => store.get(`step_${p.id}_${i}`, false)).length;
     let phase = "", html = "";
     steps.forEach((s, i) => {
@@ -534,17 +552,36 @@
         "Upload course descriptions", "Check German grade with the LMU conversion tool", "Review all pages and submit before 15 Nov",
         "Central LMU application (opens 2 Dec, deadline 15 Jan)"] },
     },
+    rodayna: {
+      "hildesheim-da": { status: "Preparing", note: "First program to apply to (rolling admission, deadline 15 Dec 2026). Not filled in yet.", miss: [
+        "Postal address and phone for the form", "High school name, certificate date and mark", "Graduation project link (BloomTech report)",
+        "Upload CV", "Upload degree certificate and transcript", "Upload Graduation Statement (English proof)",
+        "Set password and tick data protection", "Review everything and submit"] },
+      "lmu-stats": { status: "Preparing", note: "Department deadline 15 Nov 2026, 11:59 pm CET. Not filled in yet.", miss: [
+        "Fill the department application", "Upload diploma and transcript", "Upload Graduation Statement (English proof)",
+        "Upload CV, certificates and course descriptions", "Motivation letter showing the data science focus", "Review and submit before 15 Nov",
+        "Central LMU application (opens 2 Dec, deadline 15 Jan)"] },
+      "thws-ai": { status: "Preparing", note: "Non-EU: submit by 15 Nov 2026 (final 15 Dec). Needs a uni-assist VPD.", miss: [
+        "High school certificate (official English version)", "Request uni-assist VPD now (4 to 6 weeks)", "Email mai.fiw@thws.de about the Graduation Statement as English proof",
+        "Fill the THWS form version 08.10.2026", "Pay the EUR 50 fee", "Passport copy"] },
+    },
   };
+  /* each program is seeded only once per profile and never overwrites what the person changed */
   function seedApps() {
     const s = SEED[profile];
-    if (!s || store.get("apps_seeded", false)) return;
-    Object.keys(s).forEach((id) => {
+    if (!s) return;
+    let done = store.get("apps_seeded_ids", null);
+    if (!done) done = store.get("apps_seeded", false) ? Object.keys(s) : [];
+    const todo = Object.keys(s).filter((id) => !done.includes(id));
+    if (!todo.length) return;
+    todo.forEach((id) => {
+      done.push(id);
       if (!byId(id)) return;
       if (statusOf(id) === "Not started") raw.set(profile + "_status_" + id, s[id].status);
       if (!store.get("note_" + id, "")) raw.set(profile + "_note_" + id, s[id].note);
       if (!store.get("miss_" + id, []).length) raw.set(profile + "_miss_" + id, s[id].miss.map((t) => ({ text: t, done: false })));
     });
-    store.set("apps_seeded", true);
+    store.set("apps_seeded", true); store.set("apps_seeded_ids", done);
   }
   function pageApps() {
     seedApps();
@@ -589,12 +626,12 @@
     printHtml(`${me.name.replace(/ /g, "_")}_CV_${fileTag(p)}`, CV_CSS,
       `<h1>${me.name}</h1><div class="contact">${me.contact}</div><h2>Profile</h2><p>${esc(me.profile(docFocus(p)))}</p>${me.body}`);
   }
-  const letterText = (p) => store.get("letter_" + p.id, "") || letterDefault(p, CV_ME[profile].name);
+  const letterText = (p) => store.get("letter_" + p.id, "") || (CV_ME[profile].letter ? CV_ME[profile].letter(p) : letterDefault(p, CV_ME[profile].name));
   function letterFor(p) {
     const me = CV_ME[profile];
     const paras = letterText(p).split(/\n\s*\n/).map((x) => `<p>${esc(x.trim())}</p>`).join("");
     printHtml(`${me.name.replace(/ /g, "_")}_Motivation_Letter_${fileTag(p)}`, LETTER_CSS,
-      `<div class="top"><div><b>${me.name}</b><br>Alexandria, Egypt<br>Myar.issa2003@gmail.com</div><div style="text-align:right">${fmtLong(new Date())}<br><br>Admissions Committee<br>${esc(p.prog)}<br>${esc(p.uni)}</div></div>
+      `<div class="top"><div><b>${me.name}</b><br>${me.city || "Alexandria, Egypt"}<br>${me.email || "Myar.issa2003@gmail.com"}</div><div style="text-align:right">${fmtLong(new Date())}<br><br>Admissions Committee<br>${esc(p.prog)}<br>${esc(p.uni)}</div></div>
        <p class="subj">Motivation Letter: ${esc(p.prog)}</p>${paras}`);
   }
   function pageDocs(arg) {
@@ -619,7 +656,7 @@
     };
     return `
       <h1>My documents</h1>
-      <p class=.lead">Your general papers in one place, plus a CV, a motivation letter and the application record for each program. For a generated CV or letter, press Download PDF and choose "Save as PDF" in the print window.</p>
+      <p class="lead">Your general papers in one place, plus a CV, a motivation letter and the application record for each program. For a generated CV or letter, press Download PDF and choose "Save as PDF" in the print window.</p>
       <h2>General documents</h2>
       <div class="card">${files.filter((d) => d.g === "gen").map(fileRow).join("")}</div>
       <h2>Per program</h2>
