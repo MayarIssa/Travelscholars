@@ -336,8 +336,11 @@
     </div>`).join("")}</div>`;
   }
 
-  const F = { country: "All", field: "All", money: "All", eng: "All", apply: "All", sort: "rank" };
+  const F = { country: "All", field: "All", money: "All", eng: "All", apply: "All", start: "All", sort: "rank" };
   const isDirect = (p) => p.country !== "Germany" || !!p.direct;
+  /* summer semester intake: programs that start in March or April 2027 */
+  const SPRING = "Spring 2027 (March / April)";
+  const startsSpring = (p) => /\b(March|April)\b/.test(p.intake || "");
   function pageAll(secArg) {
     if (secArg) {
       F.country = SECTIONS[secArg] ? SECTIONS[secArg].name : "All";
@@ -356,6 +359,7 @@
       if (F.money === "No blocked account" && p.blocked) return false;
       if (!engOk(p)) return false;
       if (F.apply !== "All" && !isDirect(p)) return false;
+      if (F.start === SPRING && !startsSpring(p)) return false;
       return true;
     });
     const dkey = (p) => { const d = nextDeadline(p); return d && d.d ? d.d : "9999"; };
@@ -373,6 +377,7 @@
         <div class="frow"><label>Money</label>${btns("money", ["All", "Stipend", "No tuition", "No blocked account"])}</div>
         <div class="frow"><label>English</label>${engBtns()}</div>
         <div class="frow"><label>Apply</label>${btns("apply", ["All", "Directly (no uni-assist)"])}</div>
+        ${PROGRAMS.some(startsSpring) ? `<div class="frow"><label>Start</label>${btns("start", ["All", SPRING])}</div>` : ""}
         <div class="frow"><label>Sort by</label>
           <select id="sort"><option value="rank" ${F.sort === "rank" ? "selected" : ""}>Best for me</option><option value="deadline" ${F.sort === "deadline" ? "selected" : ""}>Nearest deadline</option><option value="bring" ${F.sort === "bring" ? "selected" : ""}>Least money to bring</option><option value="world" ${F.sort === "world" ? "selected" : ""}>Best world ranking</option></select>
           <span class="muted small" style="margin-left:6px">${list.length} program${list.length === 1 ? "" : "s"}</span></div>
@@ -735,7 +740,7 @@ ${DS.moneyCards}
 
   let pendingPin = null;
   function enter(pid) {
-    profile = pid; raw.set("current", pid); loadRates(); useDataset(); pendingPin = null; Object.assign(F, { country: "All", field: "All", money: "All", eng: "All", apply: "All" });
+    profile = pid; raw.set("current", pid); loadRates(); useDataset(); pendingPin = null; Object.assign(F, { country: "All", field: "All", money: "All", eng: "All", apply: "All", start: "All" });
     if (location.hash !== "#home") location.hash = "#home"; render(); window.scrollTo(0, 0);
     pullNow();
   }
