@@ -71,6 +71,13 @@ const FUNDING = {
     "Apply online between 1 Feb and 15 Aug 2027 (earlier is better for the visa)",
     "Do the interview if shortlisted",
     "Accept the offer and pay the first EUR 7,000 instalment" ] },
+  "tum-dea": { how: "partial", text: "No full scholarship: tuition is EUR 4,000 to 6,000 per semester. The merit waiver covers 2 semesters (renewable) if Pharos certifies you are in the top 5% of your class; a need-based waiver is decided by lottery. Later you can apply for the Deutschlandstipendium (EUR 300 a month). Living costs come from your blocked account or DAAD.", apply: [
+    "Ask Pharos for an English-instruction confirmation and an official class ranking certificate (top 5%)",
+    "Request a uni-assist VPD for TUM now (4 to 6 weeks)",
+    "Write the statement of reasons and the 1,000-word scientific paper, fill the curriculum analysis form",
+    "Apply on TUMonline by 30 Nov 2026 (summer) or 1 Feb to 31 May 2027 (winter)",
+    "Apply for the merit tuition waiver between 1 Nov 2026 and 15 Jan 2027",
+    "If invited, take the 90-minute written test in Munich" ] },
   "bht-ds": { how: "none", text: "No scholarship needed: no tuition. Admission is enough; you live on the blocked account.", apply: [
     "Take IELTS (B2 level, 6.5 recommended)",
     "Apply on uni-assist before the summer deadline (about mid July 2027) and pay the fee",
