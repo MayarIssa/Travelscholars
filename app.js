@@ -354,7 +354,12 @@
     </div>`).join("")}</div>`;
   }
 
-  const F = { country: "All", field: "All", money: "All", eng: "All", apply: "All", start: "All", sort: "rank" };
+  const F = { country: "All", field: "All", money: "All", eng: "All", apply: "All", start: "All", sort: "rank", q: "" };
+  /* text search: every word must appear somewhere in the program's main text */
+  const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const matchQ = (q, parts) => { const hay = norm(parts.join(" ")); return norm(q).split(/\s+/).filter(Boolean).every((w) => hay.includes(w)); };
+  const searchBox = (id, val, ph) => `<div class="searchbox"><input id="${id}" type="search" value="${esc(val)}" placeholder="${esc(ph)}" autocomplete="off" aria-label="Search">${val ? `<button class="fbtn" data-clearq="${id}">Clear</button>` : ""}</div>`;
+  const hasPhd = () => typeof PHD !== "undefined" && (!prof().data || prof().data === "main");
   const isDirect = (p) => p.country !== "Germany" || !!p.direct;
   /* summer semester intake: programs that start in March or April 2027 */
   const SPRING = "Spring 2027 (March / April)";
@@ -378,6 +383,7 @@
       if (!engOk(p)) return false;
       if (F.apply !== "All" && !isDirect(p)) return false;
       if (F.start === SPRING && !startsSpring(p)) return false;
+      if (F.q && !matchQ(F.q, [p.uni, p.prog, p.city, p.country, p.field.join(" "), p.degree, p.applyVia, p.chance])) return false;
       return true;
     });
     const dkey = (p) => { const d = nextDeadline(p); return d && d.d ? d.d : "9999"; };
@@ -389,7 +395,9 @@
     return `
       <h1>All programs</h1>
       <p class="lead">Choose a country or region, then narrow it down. Tap any program for every detail.</p>
+      ${searchBox("q", F.q, "Search programs: university, city, AI, data, statistics...")}
       <div class="filters">
+        ${hasPhd() ? `<div class="frow"><label>Level</label><button class="fbtn on">Master's</button><a class="fbtn" href="#phd">Direct PhD (${PHD.length})</a></div>` : ""}
         <div class="frow"><label>Country</label>${btns("country", countries)}</div>
         <div class="frow"><label>Field</label>${btns("field", ["All", ...DS.fields])}</div>
         <div class="frow"><label>Money</label>${btns("money", ["All", "Stipend", "No tuition", "No blocked account"])}</div>
@@ -403,6 +411,69 @@
       ${list.length ? `<div class="grid">${list.map((p) => card(p, "rankAll")).join("")}</div>` : '<div class="empty">No program matches these filters.</div>'}
       ${F.country === "Germany" && DE_EXCLUDED.length ? `<h2>Checked in Germany but not suitable</h2><div class="card"><table class="money">${DE_EXCLUDED.map((r) => `<tr><td><b>${esc(r[0])}</b></td><td style="text-align:left;font-weight:400">${esc(r[1])}</td></tr>`).join("")}</table></div>` : ""}
       ${showNeeds.length ? `<h2>Funded, but needs an English test</h2>${needsTestTable(showNeeds)}` : ""}`;
+  }
+
+  /* ---------- Direct PhD (after a bachelor's) ---------- */
+  const PF = { region: "All", eng: "All", checked: "All", track: "All", sort: "deadline", q: "" };
+  const phdById = (id) => (typeof PHD !== "undefined" ? PHD.find((x) => x.id === id) : null);
+  const PHD_ENG = { moi: ["good", "MOI letter is enough"], ask: ["warn", "May accept MOI: ask first"], test: ["pay", "IELTS / TOEFL needed"] };
+  function phdList() {
+    const l = PHD.filter((x) => {
+      if (PF.region !== "All" && x.region !== PF.region) return false;
+      if (PF.eng === "MOI letter is enough" && x.eng !== "moi") return false;
+      if (PF.eng === "MOI or ask" && x.eng === "test") return false;
+      if (PF.eng === "Test needed" && x.eng !== "test") return false;
+      if (PF.checked === "Checked on official page" && !x.checked) return false;
+      if (PF.track === "Tracking" && statusOf(x.id) === "Not started") return false;
+      if (PF.q && !matchQ(PF.q, [x.uni, x.prog, x.region, x.money, x.note, x.engText])) return false;
+      return true;
+    });
+    const dk = (x) => (x.d && daysLeft(x.d) >= 0 ? x.d : "9999");
+    if (PF.sort === "deadline") l.sort((a, b) => dk(a).localeCompare(dk(b)));
+    if (PF.sort === "name") l.sort((a, b) => a.uni.localeCompare(b.uni));
+    if (PF.sort === "english") l.sort((a, b) => "mat".indexOf(a.eng[0]) - "mat".indexOf(b.eng[0]) || dk(a).localeCompare(dk(b)));
+    return l;
+  }
+  function phdCard(x) {
+    const e = PHD_ENG[x.eng], n = x.d ? daysLeft(x.d) : null;
+    return `<div class="card pcard phd-card">
+      <div class="uni">${x.flag} ${esc(x.uni)}</div><div class="prog">${esc(x.prog)}</div>
+      <div class="chips"><span class="chip plain">${esc(x.region)}</span><span class="chip ${e[0]}">${e[1]}</span>${x.checked ? '<span class="chip good">✓ Checked</span>' : '<span class="chip plain">Confirm on official page</span>'}</div>
+      <div class="mline good">💰 ${esc(x.money)}</div>
+      <div class="small"><b>English:</b> ${esc(x.engText)}</div>
+      <div class="small"><b>Deadline:</b> ${esc(x.deadline)}${n != null && n >= 0 ? ` <span class="muted">(${n} days left)</span>` : ""}</div>
+      ${x.note ? `<div class="small muted" style="margin-top:4px">${esc(x.note)}</div>` : ""}
+      <div class="phd-actions"><a class="fbtn" href="${esc(x.link)}" target="_blank" rel="noopener">${/google\.com\/search/.test(x.link) ? "Find official page ↗" : "Official page ↗"}</a>
+        <select class="status-sel" data-status="${x.id}" data-rerender="1" aria-label="My status">${STATUSES.map((s) => `<option ${statusOf(x.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+        ${x.d && n >= 0 ? `<button class="cal-btn" data-phdics="${x.id}">📅</button>` : ""}</div>
+    </div>`;
+  }
+  function pagePhd() {
+    if (!hasPhd()) return `<h1>Direct PhD</h1><div class="empty">This list is for computer science and data. Nothing here for ${esc(prof().name)} yet.</div>`;
+    const btns = (key, opts) => opts.map((o) => `<button class="fbtn ${PF[key] === o ? "on" : ""}" data-pf="${key}" data-v="${esc(o)}">${esc(o)}</button>`).join("");
+    const l = phdList(), tracking = PHD.filter((x) => statusOf(x.id) !== "Not started").length;
+    const cnt = (r) => PHD.filter((x) => x.region === r).length;
+    return `
+      <h1>Direct PhD after a bachelor's</h1>
+      <p class="lead">${PHD.length} funded PhD programs in the USA, Canada, Europe and the UK that accept a bachelor's degree. Researched ${esc(PHD_CHECKED)}. "Checked" means confirmed on the official page; for the rest, check the page before you apply.</p>
+      <div class="stats">
+        <div class="stat"><b>${PHD.filter((x) => x.eng === "moi").length}</b><span>accept the MOI letter</span></div>
+        <div class="stat"><b>${PHD.filter((x) => x.eng === "ask").length}</b><span>may accept MOI (ask)</span></div>
+        <div class="stat"><b>${PHD.filter((x) => x.checked).length}</b><span>checked on the official page</span></div>
+        <div class="stat"><b>${tracking}</b><span>you are tracking</span></div>
+      </div>
+      ${searchBox("phdq", PF.q, "Search: university, machine learning, NLP, HCI, Ireland...")}
+      <div class="filters">
+        <div class="frow"><label>Level</label><a class="fbtn" href="#all">Master's</a><button class="fbtn on">Direct PhD</button></div>
+        <div class="frow"><label>Region</label>${btns("region", ["All", "USA", "Canada", "Europe", "UK"]).replace(/>(USA|Canada|Europe|UK)</g, (m, r) => `>${r} (${cnt(r)})<`)}</div>
+        <div class="frow"><label>English</label>${btns("eng", ["All", "MOI letter is enough", "MOI or ask", "Test needed"])}</div>
+        <div class="frow"><label>Info</label>${btns("checked", ["All", "Checked on official page"])}</div>
+        <div class="frow"><label>Mine</label>${btns("track", ["All", "Tracking"])}</div>
+        <div class="frow"><label>Sort by</label><select id="phdsort"><option value="deadline" ${PF.sort === "deadline" ? "selected" : ""}>Nearest deadline</option><option value="english" ${PF.sort === "english" ? "selected" : ""}>MOI first</option><option value="name" ${PF.sort === "name" ? "selected" : ""}>University A to Z</option></select>
+          <span class="muted small" style="margin-left:6px">${l.length} program${l.length === 1 ? "" : "s"}</span></div>
+      </div>
+      <div class="note">A PhD application needs 2 or 3 recommendation letters, a statement of purpose and often a short research proposal. Track your referees in <a href="#apps">My applications</a>. Set a status here to start tracking a PhD.</div>
+      ${l.length ? `<div class="grid">${l.map(phdCard).join("")}</div>` : '<div class="empty">No PhD program matches these filters.</div>'}`;
   }
 
   function pageProgram(id) {
@@ -609,7 +680,48 @@
       <div class="card"><h3>➕ Start tracking a program</h3>
         <form class="addrow" id="startApp"><select name="pid" class="status-sel" style="flex:1">${notStarted.map((p) => `<option value="${p.id}">${p.flag} ${esc(p.uni)}: ${esc(p.prog)}</option>`).join("")}</select><button class="fbtn on" type="submit">Start</button></form>
         <p class="muted small" style="margin:6px 0 0">Or change the status on any program page.</p></div>
-      ${started.length ? `<div class="apps-grid">${started.map(card).join("")}</div>` : '<p class="muted">No applications started yet.</p>'}`;
+      <p><button class="fbtn" data-csv="1">⬇️ Download my applications (spreadsheet)</button></p>
+      ${started.length ? `<div class="apps-grid">${started.map(card).join("")}</div>` : '<p class="muted">No applications started yet.</p>'}
+      ${hasPhd() ? phdApps() : ""}
+      ${refsCard()}`;
+  }
+  function phdApps() {
+    const l = PHD.filter((x) => statusOf(x.id) !== "Not started").sort((a, b) => STATUSES.indexOf(statusOf(a.id)) - STATUSES.indexOf(statusOf(b.id)));
+    return `<h2>🎓 Direct PhD I am tracking</h2>
+      ${l.length ? `<div class="apps-grid">${l.map((x) => `<div class="card app-card"><div class="app-head"><div><b>${x.flag} ${esc(x.uni)}</b><div class="muted small">${esc(x.prog)}</div></div>
+        <select class="status-sel" data-status="${x.id}" data-rerender="1">${STATUSES.map((s) => `<option ${statusOf(x.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+        <p class="small" style="margin:6px 0">⏰ ${esc(x.deadline)} · <a href="${esc(x.link)}" target="_blank" rel="noopener">Official page ↗</a></p>
+        <textarea class="notes" data-note="${x.id}" placeholder="Supervisors I emailed, portal login, what is missing...">${esc(store.get("note_" + x.id, ""))}</textarea></div>`).join("")}</div>`
+        : '<p class="muted small">None yet. Open <a href="#phd">Direct PhD</a> and set a status on a program.</p>'}`;
+  }
+  /* applications in progress (master's and PhD), used by the referees tracker and the spreadsheet */
+  function activeApps() {
+    const m = PROGRAMS.filter((p) => statusOf(p.id) !== "Not started").map((p) => ({ id: p.id, uni: p.uni, prog: p.prog, dl: nextDeadline(p) ? nextDeadline(p).t : "", kind: "Master's" }));
+    const d = hasPhd() ? PHD.filter((x) => statusOf(x.id) !== "Not started").map((x) => ({ id: x.id, uni: x.uni, prog: x.prog, dl: x.deadline, kind: "PhD" })) : [];
+    return [...m, ...d];
+  }
+  const REF_ST = ["Not asked", "Asked", "Agreed", "Submitted"];
+  function refsCard() {
+    const refs = store.get("refs", []), apps = activeApps();
+    return `<h2>✉️ Recommendation letters</h2>
+      <p class="muted small">Add the people writing your letters, then mark for each application whether you asked them and whether they submitted.</p>
+      <div class="apps-grid">${refs.map((r, i) => `<div class="card app-card"><div class="app-head"><div><b>${esc(r.name)}</b><div class="muted small">${esc(r.role || "")}${r.email ? " · " + esc(r.email) : ""}</div></div><button class="del" data-refdel="${i}" title="Remove">✕</button></div>
+        ${apps.length ? `<table class="money ref-table">${apps.map((a) => { const v = (r.st || {})[a.id] || "Not asked"; return `<tr><td>${esc(a.uni)}<div class="muted small">${esc(a.kind)}</div></td><td><select class="status-sel" data-ref="${i}|${a.id}">${REF_ST.map((s) => `<option ${v === s ? "selected" : ""}>${s}</option>`).join("")}</select></td></tr>`; }).join("")}</table>` : '<p class="muted small">Start an application to track letters for it.</p>'}
+      </div>`).join("")}</div>
+      <div class="card"><form class="addrow" id="addRef"><input name="n" placeholder="Name (e.g. Dr. Soha Ahmed)" maxlength="80" required><input name="r" placeholder="Role (optional)" maxlength="80"><input name="e" type="email" placeholder="Email (optional)" maxlength="120"><button class="fbtn on" type="submit">Add referee</button></form></div>`;
+  }
+  function downloadCsv() {
+    const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+    const refs = store.get("refs", []);
+    const rows = [["Type", "University", "Program", "Status", "Deadline", "Still missing", "Letters submitted", "Note"]];
+    activeApps().forEach((a) => {
+      const miss = store.get("miss_" + a.id, []).filter((m) => !m.done).map((m) => m.text).join("; ");
+      const sub = refs.filter((r) => (r.st || {})[a.id] === "Submitted").length;
+      rows.push([a.kind, a.uni, a.prog, statusOf(a.id), a.dl, miss, refs.length ? sub + " of " + refs.length : "", store.get("note_" + a.id, "")]);
+    });
+    const url = URL.createObjectURL(new Blob(["\ufeff" + rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a"); link.href = url; link.download = prof().name + "_applications.csv"; document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
   /* ---------- My documents: saved files, CV and motivation letter per program ---------- */
@@ -819,6 +931,7 @@ ${DS.moneyCards}
     else if (page === "deadlines") html = pageDeadlines();
     else if (page === "checklist") html = pageChecklist();
     else if (page === "apps") html = pageApps();
+    else if (page === "phd") html = pagePhd();
     else if (page === "docs") { html = pageDocs(arg); tab = "docs"; }
     else if (page === "money") html = pageMoney();
     else if (page === "profile") html = pageSettings();
@@ -828,13 +941,13 @@ ${DS.moneyCards}
     $("#app").innerHTML = html + cmpBar();
     if (page === "docs" && arg) { const el = document.getElementById("doc-" + arg); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
     if (page === "money" && arg === "daad") { const el = $("#daad"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
-    document.querySelectorAll("#tabs a").forEach((a) => a.classList.toggle("on", a.dataset.tab === tab));
+    document.querySelectorAll("#tabs a").forEach((a) => { a.classList.toggle("on", a.dataset.tab === tab); if (a.dataset.tab === "phd") a.hidden = !hasPhd(); });
     topActions();
   }
 
   let pendingPin = null;
   function enter(pid) {
-    profile = pid; raw.set("current", pid); loadRates(); useDataset(); pendingPin = null; Object.assign(F, { country: "All", field: "All", money: "All", eng: "All", apply: "All", start: "All" });
+    profile = pid; raw.set("current", pid); loadRates(); useDataset(); pendingPin = null; Object.assign(F, { country: "All", field: "All", money: "All", eng: "All", apply: "All", start: "All", q: "" }); Object.assign(PF, { region: "All", eng: "All", checked: "All", track: "All", q: "" });
     if (location.hash !== "#home") location.hash = "#home"; render(); window.scrollTo(0, 0);
     pullNow();
   }
@@ -862,13 +975,25 @@ ${DS.moneyCards}
     } else if (f.id === "startApp") {
       const id = f.elements.pid.value; if (!id) return;
       store.set("status_" + id, "Preparing"); render();
+    } else if (f.id === "addRef") {
+      const n = f.n.value.trim(); if (!n) return;
+      const list = store.get("refs", []); list.push({ name: n, role: f.r.value.trim(), email: f.e.value.trim(), st: {} }); store.set("refs", list);
+      const y = window.scrollY; render(); window.scrollTo(0, y);
     } else if (f.id === "addCustom") {
       const t = f.t.value.trim(); if (!t) return;
       const list = store.get("custom", []); list.push({ text: t, done: false }); store.set("custom", list); render();
       const inp = $("#addCustom input"); if (inp) inp.focus();
     }
   });
+  function liveSearch(el, obj) {
+    obj.q = el.value; const id = el.id, pos = el.selectionStart;
+    if (id === "q" && location.hash.startsWith("#all/")) history.replaceState(null, "", "#all");
+    const y = window.scrollY; render(); window.scrollTo(0, y);
+    const n = document.getElementById(id); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (err) { /* ignore */ } }
+  }
+  let qTimer = null;
   document.addEventListener("input", (e) => {
+    if (e.target.id === "q" || e.target.id === "phdq") { const el = e.target, obj = el.id === "q" ? F : PF; clearTimeout(qTimer); qTimer = setTimeout(() => liveSearch(el, obj), 180); return; }
     if (e.target.dataset.note) store.set("note_" + e.target.dataset.note, e.target.value);
     if (e.target.dataset.letter) store.set("letter_" + e.target.dataset.letter, e.target.value);
   });
@@ -891,6 +1016,12 @@ ${DS.moneyCards}
       PROGRAMS.forEach((p) => { if (DONE_STATUSES.includes(statusOf(p.id))) return; p.deadlines.forEach((d, i) => { if (d.d && daysLeft(d.d) >= 0) ev.push(icsEvent(p, d, i)); }); });
       downloadIcs(ev, "all-deadlines"); return;
     }
+    const cq = e.target.closest("[data-clearq]"); if (cq) { (cq.dataset.clearq === "q" ? F : PF).q = ""; render(); return; }
+    const pf = e.target.closest("[data-pf]"); if (pf) { PF[pf.dataset.pf] = pf.dataset.v; const y = window.scrollY; render(); window.scrollTo(0, y); return; }
+    const pi = e.target.closest("[data-phdics]");
+    if (pi) { const x = phdById(pi.dataset.phdics); if (x) downloadIcs([icsEvent({ id: x.id, uni: x.uni, prog: x.prog, link: x.link }, { d: x.d, t: "PhD deadline: " + x.deadline }, 0)], "deadline-" + x.id); return; }
+    if (e.target.closest("[data-csv]")) { downloadCsv(); return; }
+    const rd = e.target.closest("[data-refdel]"); if (rd) { const list = store.get("refs", []); list.splice(+rd.dataset.refdel, 1); store.set("refs", list); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     if (e.target.closest("[data-theme-toggle]")) { theme = theme === "auto" ? "light" : theme === "light" ? "dark" : "auto"; raw.set("theme", theme); applyTheme(); topActions(); return; }
     const pick = e.target.closest("[data-pick]");
     if (pick) { const pid = pick.dataset.pick; if (raw.get("pin_" + pid, "") && !unlocked[pid]) { pendingPin = pid; render(); } else enter(pid); return; }
@@ -916,6 +1047,8 @@ ${DS.moneyCards}
     else if (t.dataset.miss) { const [id, i] = t.dataset.miss.split("|"); const list = store.get("miss_" + id, []); if (list[+i]) list[+i].done = t.checked; store.set("miss_" + id, list); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (t.dataset.status) { store.set("status_" + t.dataset.status, t.value); if (t.dataset.rerender) { const y = window.scrollY; render(); window.scrollTo(0, y); } }
     else if (t.id === "sort") { F.sort = t.value; render(); }
+    else if (t.id === "phdsort") { PF.sort = t.value; render(); }
+    else if (t.dataset.ref) { const [i, id] = t.dataset.ref.split("|"); const list = store.get("refs", []); if (list[+i]) { list[+i].st = list[+i].st || {}; list[+i].st[id] = t.value; store.set("refs", list); } }
     else if (t.dataset.rate) { const v = parseFloat(t.value); if (v > 0) { const m = store.get("rates", {}); m[t.dataset.rate] = v; store.set("rates", m); loadRates(); const y = window.scrollY; render(); window.scrollTo(0, y); } }
   });
   refreshLiveRates();

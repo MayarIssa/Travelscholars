@@ -263,3 +263,16 @@ details.daad ol.list-plain li { margin: 6px 0; }
 #docPick select, #startApp select { min-width: 0; width: 100%; max-width: 100%; }
 #docPick, #startApp { flex-wrap: nowrap; }
 a.fbtn { text-decoration: none; color: inherit; display: inline-block; } a.fbtn.on { color: #fff; }
+
+/* search box and Direct PhD */
+.searchbox { display: flex; gap: 8px; margin: 10px 0 4px; }
+.searchbox input { flex: 1; min-width: 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 99px; background: var(--card); color: var(--ink); font: inherit; font-size: 15px; }
+.searchbox input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.phd-card .uni { font-weight: 700; }
+.phd-card .prog { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+.phd-card .chips { margin-bottom: 8px; }
+.phd-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.phd-actions .status-sel { flex: 1; min-width: 120px; }
+.ref-table td { padding: 4px 6px; }
+#addRef input { min-width: 0; }
+@media (max-width: 600px) { #addRef { flex-wrap: wrap; } #addRef input { flex: 1 1 100%; } }
