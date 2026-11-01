@@ -276,3 +276,5 @@ a.fbtn { text-decoration: none; color: inherit; display: inline-block; } a.fbtn.
 .ref-table td { padding: 4px 6px; }
 #addRef input { min-width: 0; }
 @media (max-width: 600px) { #addRef { flex-wrap: wrap; } #addRef input { flex: 1 1 100%; } }
+.kv td { white-space: normal !important; text-align: left !important; font-weight: 400 !important; vertical-align: top; }
+.kv td.rl { width: 34%; min-width: 110px; }

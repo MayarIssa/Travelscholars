@@ -442,13 +442,43 @@
       <div class="mline good">💰 ${esc(x.money)}</div>
       <div class="small"><b>English:</b> ${esc(x.engText)}</div>
       <div class="small"><b>Deadline:</b> ${esc(x.deadline)}${n != null && n >= 0 ? ` <span class="muted">(${n} days left)</span>` : ""}</div>
+      <div class="small"><b>You would start:</b> ${esc(x.det.start)}</div>
       ${x.note ? `<div class="small muted" style="margin-top:4px">${esc(x.note)}</div>` : ""}
-      <div class="phd-actions"><a class="fbtn" href="${esc(x.link)}" target="_blank" rel="noopener">${/google\.com\/search/.test(x.link) ? "Find official page ↗" : "Official page ↗"}</a>
+      <div class="phd-actions"><a class="fbtn on" href="#phd/${x.id}">Details and requirements</a><a class="fbtn" href="${esc(x.link)}" target="_blank" rel="noopener">${/google\.com\/search/.test(x.link) ? "Find official page ↗" : "Official page ↗"}</a>
         <select class="status-sel" data-status="${x.id}" data-rerender="1" aria-label="My status">${STATUSES.map((s) => `<option ${statusOf(x.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select>
         ${x.d && n >= 0 ? `<button class="cal-btn" data-phdics="${x.id}">📅</button>` : ""}</div>
     </div>`;
   }
-  function pagePhd() {
+  function pagePhdOne(x) {
+    const t = x.det, e = PHD_ENG[x.eng], n = x.d ? daysLeft(x.d) : null;
+    const done = t.docs.filter((_, i) => store.get(`phddoc_${x.id}_${i}`, false)).length;
+    const row = (k, v) => v ? `<tr><td class="rl"><b>${k}</b></td><td>${esc(v)}</td></tr>` : "";
+    const list = (a, ol) => `<${ol ? "ol" : "ul"} class="list-plain">${a.map((s) => `<li>${esc(s)}</li>`).join("")}</${ol ? "ol" : "ul"}>`;
+    return `<p><a href="#phd">← All direct PhD programs</a></p>
+      <h1>${x.flag} ${esc(x.uni)}</h1>
+      <p class="lead" style="margin-bottom:8px">${esc(x.prog)}</p>
+      <div class="chips" style="margin-bottom:12px"><span class="chip plain">${esc(x.region)}</span><span class="chip ${e[0]}">${e[1]}</span>${t.verified ? '<span class="chip good">✓ Details checked on the official page</span>' : '<span class="chip warn">Usual rules for this kind of program: confirm on the official page</span>'}</div>
+      <div class="big-say good">🗓️ <div>If you are accepted, you go in: ${esc(t.start)}<br><span>Length: ${esc(t.length)}</span></div></div>
+      <div class="big-say ${n != null && n >= 0 && n <= 45 ? "pay" : "warn"}">⏰ <div>Apply by: ${esc(x.deadline)}<br><span>${n != null && n >= 0 ? n + " days left" : "Check the exact date on the official page"}</span></div></div>
+      <div class="phd-actions" style="margin:10px 0 16px"><a class="fbtn" href="${esc(x.link)}" target="_blank" rel="noopener">${/google\.com\/search/.test(x.link) ? "Find official page ↗" : "Official page ↗"}</a>
+        <select class="status-sel" data-status="${x.id}" data-rerender="1" aria-label="My status">${STATUSES.map((s) => `<option ${statusOf(x.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+        ${x.d && n >= 0 ? `<button class="cal-btn" data-phdics="${x.id}">📅 Add deadline to calendar</button>` : ""}</div>
+      <h2>Key facts</h2>
+      <div class="card" style="overflow-x:auto"><table class="money kv">
+        ${row("Money", x.money)}${row("Application fee", t.fee)}${row("Grades needed", t.gpa)}${row("English", x.engText + (t.eng && t.eng !== x.engText ? ". " + t.eng : ""))}${row("GRE", t.gre)}${row("Notes", x.note)}
+      </table></div>
+      <h2>What you need to send <span class="muted small">(${done}/${t.docs.length} ready)</span></h2>
+      <div class="card">${t.docs.map((d, i) => { const on = store.get(`phddoc_${x.id}_${i}`, false); return `<label class="check ${on ? "done" : ""}"><input type="checkbox" data-k="phddoc_${x.id}_${i}" ${on ? "checked" : ""}><span class="txt">${esc(d)}</span></label>`; }).join("")}</div>
+      <h2>What happens after you apply</h2>
+      <div class="card">${list(t.steps, true)}</div>
+      <h2>If you are accepted: visa and moving</h2>
+      <div class="card">${list(t.visa)}</div>
+      <h2>My note</h2>
+      <textarea class="notes" data-note="${x.id}" placeholder="Professors I emailed, login, what is missing...">${esc(store.get("note_" + x.id, ""))}</textarea>
+      <p class="small muted">Researched ${esc(PHD_CHECKED)}. Fees, dates and visa rules change, so always confirm on the official page before paying or applying.</p>`;
+  }
+  function pagePhd(arg) {
+    if (hasPhd() && arg && phdById(arg)) return pagePhdOne(phdById(arg));
     if (!hasPhd()) return `<h1>Direct PhD</h1><div class="empty">This list is for computer science and data. Nothing here for ${esc(prof().name)} yet.</div>`;
     const btns = (key, opts) => opts.map((o) => `<button class="fbtn ${PF[key] === o ? "on" : ""}" data-pf="${key}" data-v="${esc(o)}">${esc(o)}</button>`).join("");
     const l = phdList(), tracking = PHD.filter((x) => statusOf(x.id) !== "Not started").length;
@@ -931,7 +961,7 @@ ${DS.moneyCards}
     else if (page === "deadlines") html = pageDeadlines();
     else if (page === "checklist") html = pageChecklist();
     else if (page === "apps") html = pageApps();
-    else if (page === "phd") html = pagePhd();
+    else if (page === "phd") html = pagePhd(arg);
     else if (page === "docs") { html = pageDocs(arg); tab = "docs"; }
     else if (page === "money") html = pageMoney();
     else if (page === "profile") html = pageSettings();
