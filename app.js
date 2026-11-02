@@ -200,7 +200,7 @@
         <div><div class="uni">${p.flag} ${esc(p.uni)}</div><div class="prog">${esc(p.prog)}</div></div></div>
       <div class="chips"><span class="chip plain">${esc(p.city)}</span><span class="chip plain">${esc(p.duration)}</span>${p.field.map((f) => `<span class="chip">${f}</span>`).join("")}</div>
       <div class="chips">${rankChips(p)}</div>
-      <div class="chips">${engChip(p)}${chanceChip(p.chance)}${p.country === "Germany" ? (p.direct ? '<span class="chip good">Apply directly, no uni-assist</span>' : '<span class="chip plain">Via uni-assist</span>') : ""}</div>
+      <div class="chips">${engChip(p)}${chanceChip(p.chance)}${zuseFor(p).length ? `<span class="chip good">+ DAAD ${zuseFor(p).map((z) => z.name.replace("Zuse School ", "")).join("/")}</span>` : ""}${p.country === "Germany" ? (p.direct ? '<span class="chip good">Apply directly, no uni-assist</span>' : '<span class="chip plain">Via uni-assist</span>') : ""}</div>
       ${moneySummary(p)}
       <div class="foot"><span>⏰ ${dl}</span><span>${esc(statusOf(p.id))}</span></div>
       <div class="card-actions">${cmpBtn(p)}</div>
@@ -506,6 +506,45 @@
       ${l.length ? `<div class="grid">${l.map(phdCard).join("")}</div>` : '<div class="empty">No PhD program matches these filters.</div>'}`;
   }
 
+  /* ---------- DAAD: Zuse Schools + STEM scholarship ---------- */
+  const hasZuse = () => typeof ZUSE !== "undefined" && (!prof().data || prof().data === "main");
+  const zuseFor = (p) => (hasZuse() ? ZUSE.filter((z) => z.progs.includes(p.id)) : []);
+  function zuseCard(z) {
+    const list = (a, ol) => `<${ol ? "ol" : "ul"} class="list-plain">${a.map((x) => `<li>${esc(x)}</li>`).join("")}</${ol ? "ol" : "ul"}>`;
+    const done = z.docs.filter((_, i) => store.get(`zdoc_${z.id}_${i}`, false)).length;
+    const mine = z.progs.map(byId).filter(Boolean);
+    return `<div class="card zuse" id="${z.id}">
+      <div class="app-head"><div><h3 style="margin:0">${esc(z.name)}</h3><div class="muted small">${esc(z.full)}</div></div>
+        <select class="status-sel" data-status="${z.id}" data-rerender="1" aria-label="My status">${STATUSES.map((s) => `<option ${statusOf(z.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+      <div class="mline good" style="margin:10px 0">💰 ${esc(z.money)}</div>
+      <p class="small"><b>Where:</b> ${esc(z.where)}</p>
+      <p class="small"><b>Who can apply:</b> ${esc(z.who)}</p>
+      ${z.extra ? `<p class="small">${esc(z.extra)}</p>` : ""}
+      <p class="small"><b>English:</b> ${esc(z.english)}</p>
+      <div class="note" style="margin:8px 0"><b>Your fit:</b> ${esc(z.fit)}${mine.length ? `<br>Your master's that qualify: ${mine.map((p) => `<a href="#p/${p.id}">${esc(p.uni.split(" (")[0])}: ${esc(p.prog)}</a>`).join(" · ")}` : ""}</div>
+      <h4>Deadlines</h4>
+      ${z.deadlines.map((d) => `<div class="small">⏰ ${esc(d.t)}${d.d && daysLeft(d.d) >= 0 ? ` <span class="muted">(${daysLeft(d.d)} days left)</span>` : ""}</div>`).join("")}
+      <p class="small muted">${esc(z.deadlineNote)}</p>
+      <h4>What you need to send <span class="muted small">(${done}/${z.docs.length} ready)</span></h4>
+      ${z.docs.map((d, i) => { const on = store.get(`zdoc_${z.id}_${i}`, false); return `<label class="check ${on ? "done" : ""}"><input type="checkbox" data-k="zdoc_${z.id}_${i}" ${on ? "checked" : ""}><span class="txt">${esc(d)}</span></label>`; }).join("")}
+      <h4>How to apply</h4>${list(z.how, true)}
+      ${z.phd ? `<p class="small muted">${esc(z.phd)}</p>` : ""}
+      <div class="phd-actions"><a class="fbtn on" href="${esc(z.link)}" target="_blank" rel="noopener">Official page ↗</a>${z.link2 ? `<a class="fbtn" href="${esc(z.link2)}" target="_blank" rel="noopener">Underrepresented groups scholarship ↗</a>` : ""}</div>
+    </div>`;
+  }
+  function pageDaad() {
+    return `<h1>DAAD scholarships</h1>
+      <p class="lead">German master's at public universities are tuition-free. These DAAD-funded scholarships also pay your living costs, so you would not need the blocked account. Researched ${hasZuse() ? esc(DAAD_CHECKED) : "October 2026"}.</p>
+      ${hasZuse() ? `<h2>Konrad Zuse Schools of Excellence in AI</h2>
+      <div class="note">Three AI graduate schools funded by DAAD and the German government. <b>You apply twice:</b> once to the master's at the university, and once to the Zuse School for the scholarship. They want excellent grades (your 3.76 fits), an AI focus, and in return you join their research events, summer schools and a network that leads to PhD positions.</div>
+      <div class="card" style="overflow-x:auto"><table class="money kv"><tr><td><b>School</b></td><td><b>Money</b></td><td><b>Next deadline</b></td><td><b>Fits your list</b></td></tr>
+        ${ZUSE.map((z) => { const nd = z.deadlines.find((d) => d.d && daysLeft(d.d) >= 0); return `<tr><td><a href="#daad/${z.id}"><b>${esc(z.name)}</b></a></td><td>${esc(z.money.split(".")[0])}</td><td>${esc(nd ? nd.t : z.deadlines[0].t)}</td><td>${z.progs.length ? z.progs.length + " of your programs" : "Needs a new program"}</td></tr>`; }).join("")}</table></div>
+      <div class="apps-grid">${ZUSE.map(zuseCard).join("")}</div>` : ""}
+      <h2>DAAD Study Scholarship (STEM)</h2>
+      ${daadCard()}
+      <p class="small muted" style="margin-top:12px">Find more English-taught programs in Germany in the <a href="https://www2.daad.de/deutschland/studienangebote/international-programmes/en/" target="_blank" rel="noopener">DAAD International Programmes database ↗</a> and more scholarships in the <a href="https://www2.daad.de/deutschland/stipendium/datenbank/en/21148-scholarship-database/" target="_blank" rel="noopener">DAAD scholarship database ↗</a>. Always confirm amounts and dates on the official pages.</p>`;
+  }
+
   function pageProgram(id) {
     const p = byId(id);
     if (!p) return '<div class="empty">Program not found. <a href="#all">Back to all programs</a></div>';
@@ -518,6 +557,8 @@
     if (p.stipend) say.push(`<div class="big-say good">💰 <div>You get a stipend.<br><span>${esc(p.stipend.text)}</span></div></div>`);
     else say.push(`<div class="big-say pay">💸 <div>No stipend.<br><span>You live on your own money (the blocked account). You are allowed to work up to 20 hours a week.</span></div></div>`);
     if (p.blocked) say.push(`<div class="big-say pay">🏦 <div>Blocked account needed: EUR ${num(p.blocked.total)} for ${p.blocked.months} months (EUR ${num(p.blocked.perMonth)} per month).<br><span>${esc(p.blocked.note)}</span></div></div>`);
+    const zs = zuseFor(p);
+    if (zs.length) say.push(`<div class="big-say good">🎓 <div>Extra DAAD scholarship possible on top: ${zs.map((z) => esc(z.name)).join(", ")}<br><span>Up to about EUR 934 to 992 per month. <a href="#daad">See the requirements in the DAAD tab</a></span></div></div>`);
     if (p.proof) say.push(`<div class="big-say warn">📄 <div>Proof of money for the visa<br><span>${esc(p.proof)}</span></div></div>`);
 
     let overall;
@@ -728,7 +769,8 @@
   function activeApps() {
     const m = PROGRAMS.filter((p) => statusOf(p.id) !== "Not started").map((p) => ({ id: p.id, uni: p.uni, prog: p.prog, dl: nextDeadline(p) ? nextDeadline(p).t : "", kind: "Master's" }));
     const d = hasPhd() ? PHD.filter((x) => statusOf(x.id) !== "Not started").map((x) => ({ id: x.id, uni: x.uni, prog: x.prog, dl: x.deadline, kind: "PhD" })) : [];
-    return [...m, ...d];
+    const z = hasZuse() ? ZUSE.filter((x) => statusOf(x.id) !== "Not started").map((x) => ({ id: x.id, uni: x.name, prog: "DAAD scholarship", dl: (x.deadlines.find((q) => q.d && daysLeft(q.d) >= 0) || x.deadlines[0]).t, kind: "Scholarship" })) : [];
+    return [...m, ...d, ...z];
   }
   const REF_ST = ["Not asked", "Asked", "Agreed", "Submitted"];
   function refsCard() {
@@ -962,6 +1004,7 @@ ${DS.moneyCards}
     else if (page === "checklist") html = pageChecklist();
     else if (page === "apps") html = pageApps();
     else if (page === "phd") html = pagePhd(arg);
+    else if (page === "daad") html = pageDaad();
     else if (page === "docs") { html = pageDocs(arg); tab = "docs"; }
     else if (page === "money") html = pageMoney();
     else if (page === "profile") html = pageSettings();
@@ -970,6 +1013,7 @@ ${DS.moneyCards}
     else { html = pageHome(); tab = "home"; }
     $("#app").innerHTML = html + cmpBar();
     if (page === "docs" && arg) { const el = document.getElementById("doc-" + arg); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
+    if (page === "daad" && arg) { const el = document.getElementById(arg); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
     if (page === "money" && arg === "daad") { const el = $("#daad"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
     document.querySelectorAll("#tabs a").forEach((a) => { a.classList.toggle("on", a.dataset.tab === tab); if (a.dataset.tab === "phd") a.hidden = !hasPhd(); });
     topActions();

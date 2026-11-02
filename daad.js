@@ -1,0 +1,62 @@
+/* DAAD funded Konrad Zuse Schools of Excellence in AI. Researched 2 November 2026 on the official pages.
+   These are scholarships ON TOP of a tuition-free German master's: you apply to the master's and to the school separately. */
+const DAAD_CHECKED = "2 November 2026";
+const ZUSE = [
+  {
+    id: "daad-eliza", name: "Zuse School ELIZA", full: "Konrad Zuse School of Excellence in Learning and Intelligent Systems",
+    where: "14 institutions at 7 ELLIS sites: TU Berlin, FU Berlin, TU Darmstadt, TU Munich, Saarland University, Tübingen, Freiburg, Heidelberg (plus Max Planck institutes)",
+    money: "Up to EUR 992 per month (official DAAD rate) for up to 2 years, plus mobility grants for travel to Germany and for stays abroad. Extra support if married or with children.",
+    who: "Excellent bachelor's graduates (German or international) who are enrolled, or about to enrol, in a research-oriented AI master's at an ELIZA university. Aimed at students who want a PhD in machine learning later.",
+    extra: "There is also a special ELIZA master's scholarship for students from underrepresented groups (by gender, nationality or other). Being an Egyptian woman in AI may count: ask them.",
+    english: "Not stated by ELIZA; you must meet your master's English rules (your MOI letter works where the master's accepts it).",
+    deadlines: [
+      { t: "Cut-off for the summer term: 25 April 2027", d: "2027-04-25" },
+      { t: "Cut-off for the winter term: 25 October 2027", d: "2027-10-25" },
+    ],
+    deadlineNote: "Applications are open all year and decided at the two cut-offs. If you do not get it, you can improve and apply again for the next term.",
+    docs: ["Online application form on eliza.school", "CV", "Transcript and bachelor's degree certificate", "Motivation: why machine learning research, which ELIZA site and professors", "Proof of admission (or application) to the master's at an ELIZA university"],
+    how: ["Apply to the master's first (for you: TU Darmstadt AI and ML, TUM, TU Berlin)", "Fill the ELIZA master's form on eliza.school/application", "Selection at the next cut-off (25 April or 25 October)", "If selected, the scholarship runs until the end of the standard length of your master's"],
+    progs: ["tud-aiml", "tum-inf", "tum-dea", "tub-cs"],
+    fit: "Very good fit: three of your planned master's are at ELIZA universities.",
+    link: "https://eliza.school/application/", link2: "https://eliza.school/opportunities/masters-in-ai-scholarships-for-students-from-underrepresented-groups/",
+    phd: "PhD: 3 year employment on a TV-L E13 salary. Apply through the ELLIS PhD portal or directly to an ELIZA fellow (needs a master's first).",
+  },
+  {
+    id: "daad-relai", name: "Zuse School relAI", full: "Konrad Zuse School of Excellence in Reliable AI (TUM and LMU Munich)",
+    where: "Technical University of Munich (TUM) and LMU Munich",
+    money: "MSc scholarship for the remaining standard length of your master's (amount follows DAAD rates, not printed on the page). PhD: fully funded positions.",
+    who: "Excellent bachelor's in computer science, maths, engineering, natural sciences, data science, ML or AI, AND enrolled in (or applying in parallel to) an MSc at TUM or LMU. The offer is conditional on getting into that master's.",
+    extra: "Topics: safety, security, privacy, responsibility and mathematical foundations of AI, in medicine, robotics and algorithmic decision making.",
+    english: "C1 English or a degree taught mainly in English: your Pharos MOI letter counts.",
+    deadlines: [
+      { t: "MSc call: the 2026 call opened in May and is closed. Next call expected spring 2027 (watch from April)", d: null },
+      { t: "PhD call (needs a master's): expected to open December 2026", d: null },
+    ],
+    deadlineNote: "Most TUM and LMU master's deadlines are at the end of May, so you apply to relAI and the master's at the same time.",
+    docs: ["CV", "Bachelor's degree certificate and transcript (if not finished, a transcript showing you will finish before starting)", "Motivation statement, maximum 1,500 characters, with your relevant experience", "Application to an MSc at TUM or LMU (in parallel)", "English proof: C1 or English-taught degree (MOI)"],
+    how: ["Apply to your TUM or LMU master's (for you: LMU Statistics and Data Science, LMU Data Science, TUM Informatics, TUM Data Engineering and Analytics)", "Apply to the relAI MSc call on zuseschoolrelai.de when it opens", "Offers are conditional on admission to the master's"],
+    progs: ["lmu-stats", "lmu-ds", "tum-inf", "tum-dea"],
+    fit: "Very good fit: you are already applying to LMU and TUM, and your MOI letter meets the English rule.",
+    link: "https://zuseschoolrelai.de/application/", link2: "",
+    phd: "PhD: choose two relAI Fellows as supervisors (up to 1,000 characters each), two recommenders. Needs an excellent master's first.",
+  },
+  {
+    id: "daad-secai", name: "Zuse School SECAI", full: "School of Embedded Composite Artificial Intelligence (TU Dresden and Leipzig University)",
+    where: "TU Dresden and Leipzig University (Saxony)",
+    money: "EUR 934 per month for up to 24 months (the rest of your standard master's length). Income over EUR 603 per month is deducted. Foreign students may get a family allowance. 20 scholarships per round.",
+    who: "Current or soon-to-be master's students at TU Dresden or Leipzig University with an excellent bachelor's: German grade 1.7 or better (your Pharos grade is about 1.3, so you meet it).",
+    extra: "Eligible master's: TU Dresden M.Sc. Computer Science (with AI electives or thesis), Computational Modeling and Simulation (Applied AI track), Nanoelectronic Systems; Leipzig M.Sc. Data Science, Bioinformatics, Medical Informatics. Women in STEM are encouraged.",
+    english: "Not stated by SECAI; you must meet the master's English rule (check if TU Dresden or Leipzig accept your MOI).",
+    deadlines: [
+      { t: "Optional early selection: 19 May 2027", d: "2027-05-19" },
+      { t: "Main deadline: 30 June 2027 (call open 1 April to 30 June)", d: "2027-06-30" },
+    ],
+    deadlineNote: "You can apply while your master's application is still open: give its reference number and the date you sent it. Incomplete applications are not considered.",
+    docs: ["Motivation letter: your link to SECAI research and AI in your studies", "CV", "Bachelor's certificate (if you have it), transcript and other relevant certificates", "Declaration of other income, including other scholarships", "Reference number and date of your master's application (if applying in parallel)"],
+    how: ["Apply to a master's at TU Dresden or Leipzig (not on your list yet: Leipzig M.Sc. Data Science or TU Dresden M.Sc. Computer Science)", "Email the SECAI application to secai-office@tu-dresden.de (preferably through the TU Dresden SecureMail portal) between 1 April and 30 June 2027", "Selection is mainly on academic excellence"],
+    progs: [],
+    fit: "Good money and you meet the grade, but you would need to add a TU Dresden or Leipzig master's to your list.",
+    link: "https://secai.org/students/scholarships", link2: "",
+    phd: "",
+  },
+];
