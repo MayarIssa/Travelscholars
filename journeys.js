@@ -151,6 +151,18 @@ const FUNDING = {
     "Pay and validate the application by 15 Dec 2026",
     "Make sure referees upload letters within one week after the deadline",
     "Receive the admission and fellowship decision" ] },
+  "unilu-ds": { how: "auto", text: "The Guillaume Dupaix scholarship comes from your master's application: if the program director rates your file as excellent, you are invited to complete the scholarship file. Egypt is a target country (15 of 30 awards are reserved for target countries).", apply: [
+    "Create an account on the University of Luxembourg application portal when it opens (about 1 February 2027)",
+    "Apply to the Master in Data Science before the non-EU deadline (about 24 March 2027)",
+    "Upload CV with maths courses and grades, degree, transcript, Pharos MOI letter, motivation letter and an academic recommendation",
+    "If invited: complete the scholarship file (personal statement and two academic recommendation letters)",
+    "Results by about mid May 2027" ] },
+  "unilu-mics": { how: "auto", text: "Same Guillaume Dupaix scholarship: you are invited from your master's application if your file is rated excellent. It pays EUR 11,526 per year (partly housing) but not the EUR 400 tuition per semester.", apply: [
+    "Email the program to ask if your Pharos MOI letter counts as B2 English proof",
+    "Apply on the University of Luxembourg portal (about 1 Feb to 24 Mar 2027 for non-EU)",
+    "Upload CV, degree, transcript, English proof, motivation letter (research interests) and an academic recommendation",
+    "If invited: complete the scholarship file (personal statement and two academic recommendation letters)",
+    "Results by about mid May 2027" ] },
   "polimi-cse": { how: "separate", text: "Separate form in the same portal: you apply to the master's in the Early bird window (fee paid between 1 Oct and 1 Dec 2026), then fill the merit scholarship form on Online Services. If you win, tuition is waived and you get up to EUR 10,000 per year.", apply: [
     "Create an account on Politecnico di Milano Online Services",
     "Apply to M.Sc. Computer Science and Engineering and pay the admission fee by 1 Dec 2026 (Early bird)",
@@ -276,6 +288,15 @@ const FUNDING = {
 
 /* What happens after admission, until you travel and settle in */
 const JOURNEY = {
+  Luxembourg: [
+    "Accept the admission and the scholarship offer",
+    "Apply for the temporary authorisation to stay for students at the Luxembourg Directorate of Immigration (admission letter, proof of money: the scholarship letter counts, passport, birth certificate, health insurance)",
+    "Then apply for the type D visa at the Luxembourg consulate or its representing embassy for Egypt",
+    "Confirm your university room (part of the scholarship) or find housing",
+    "Fly to Luxembourg before the September start",
+    "After arrival: declare your arrival at the commune, get your residence permit, join the national health fund (CNS)",
+    "Enrol and pay the EUR 400 semester fee",
+  ],
   "USA (Fulbright J-1)": [
     "Accept the Fulbright grant and the university admission",
     "Receive the DS-2019 form (J-1 visa document) through Fulbright",
