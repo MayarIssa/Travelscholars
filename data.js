@@ -1039,7 +1039,7 @@ const PROGRAMS = [
   /* ============================ LUXEMBOURG (checked 2 Nov 2026) ============================ */
   {
     id: "unilu-ds",
-    rank: { world: "", country: "Luxembourg's national public university", sort: 9999 }, sec: "world", country: "Luxembourg", flag: "🇱🇺",
+    rank: { world: "Ranking not checked", country: "Luxembourg's national public university", sort: 9999 }, sec: "world", country: "Luxembourg", flag: "🇱🇺",
     uni: "University of Luxembourg + Guillaume Dupaix Scholarship",
     city: "Esch-sur-Alzette (Belval campus)", degree: "Master's (taught)", duration: "2 years (4 semesters, 120 ECTS)",
     intake: "September",
@@ -1072,7 +1072,7 @@ const PROGRAMS = [
   },
   {
     id: "unilu-mics",
-    rank: { world: "", country: "Luxembourg's national public university", sort: 9999 }, sec: "world", country: "Luxembourg", flag: "🇱🇺",
+    rank: { world: "Ranking not checked", country: "Luxembourg's national public university", sort: 9999 }, sec: "world", country: "Luxembourg", flag: "🇱🇺",
     uni: "University of Luxembourg + Guillaume Dupaix Scholarship",
     city: "Esch-sur-Alzette (Belval campus)", degree: "Master's (taught)", duration: "2 years (4 semesters, 120 ECTS)",
     intake: "September",
