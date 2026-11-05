@@ -182,6 +182,9 @@
     : `<span class="chip plain">🏅 ${esc(p.rank.country)}</span>`;
   const statusOf = (id) => store.get("status_" + id, "Not started");
   const STATUSES = ["Not started", "Preparing", "Applied", "Accepted", "Rejected", "Not applying"];
+  /* "Applied" means submitted and waiting for the university's decision */
+  const STATUS_LABEL = { Applied: "Applied, waiting for decision" };
+  const statusOpts = (cur) => STATUSES.map((s) => `<option value="${s}" ${cur === s ? "selected" : ""}>${STATUS_LABEL[s] || s}</option>`).join("");
 
   function moneySummary(p) {
     const c = calc(p);
@@ -205,7 +208,7 @@
       <div class="chips">${rankChips(p)}</div>
       <div class="chips">${engChip(p)}${chanceChip(p.chance)}${zuseFor(p).length ? `<span class="chip good">+ DAAD ${zuseFor(p).map((z) => z.name.replace("Zuse School ", "")).join("/")}</span>` : ""}${p.country === "Germany" ? (p.direct ? '<span class="chip good">Apply directly, no uni-assist</span>' : '<span class="chip plain">Via uni-assist</span>') : ""}</div>
       ${moneySummary(p)}
-      <div class="foot"><span>⏰ ${dl}</span><span>${esc(statusOf(p.id))}</span></div>
+      <div class="foot"><span>⏰ ${dl}</span><span>${esc(STATUS_LABEL[statusOf(p.id)] || statusOf(p.id))}</span></div>
       <div class="card-actions">${cmpBtn(p)}</div>
     </a>`;
   }
@@ -448,7 +451,7 @@
       <div class="small"><b>You would start:</b> ${esc(x.det.start)}</div>
       ${x.note ? `<div class="small muted" style="margin-top:4px">${esc(x.note)}</div>` : ""}
       <div class="phd-actions"><a class="fbtn on" href="#phd/${x.id}">Details and requirements</a><a class="fbtn" href="${esc(x.link)}" target="_blank" rel="noopener">${/google\.com\/search/.test(x.link) ? "Find official page ↗" : "Official page ↗"}</a>
-        <select class="status-sel" data-status="${x.id}" data-rerender="1" aria-label="My status">${STATUSES.map((s) => `<option ${statusOf(x.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+        <select class="status-sel" data-status="${x.id}" data-rerender="1" aria-label="My status">${statusOpts(statusOf(x.id))}</select>
         ${x.d && n >= 0 ? `<button class="cal-btn" data-phdics="${x.id}">📅</button>` : ""}</div>
     </div>`;
   }
@@ -464,7 +467,7 @@
       <div class="big-say good">🗓️ <div>If you are accepted, you go in: ${esc(t.start)}<br><span>Length: ${esc(t.length)}</span></div></div>
       <div class="big-say ${n != null && n >= 0 && n <= 45 ? "pay" : "warn"}">⏰ <div>Apply by: ${esc(x.deadline)}<br><span>${n != null && n >= 0 ? n + " days left" : "Check the exact date on the official page"}</span></div></div>
       <div class="phd-actions" style="margin:10px 0 16px"><a class="fbtn" href="${esc(x.link)}" target="_blank" rel="noopener">${/google\.com\/search/.test(x.link) ? "Find official page ↗" : "Official page ↗"}</a>
-        <select class="status-sel" data-status="${x.id}" data-rerender="1" aria-label="My status">${STATUSES.map((s) => `<option ${statusOf(x.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+        <select class="status-sel" data-status="${x.id}" data-rerender="1" aria-label="My status">${statusOpts(statusOf(x.id))}</select>
         ${x.d && n >= 0 ? `<button class="cal-btn" data-phdics="${x.id}">📅 Add deadline to calendar</button>` : ""}</div>
       <h2>Key facts</h2>
       <div class="card" style="overflow-x:auto"><table class="money kv">
@@ -518,7 +521,7 @@
     const mine = z.progs.map(byId).filter(Boolean);
     return `<div class="card zuse" id="${z.id}">
       <div class="app-head"><div><h3 style="margin:0">${esc(z.name)}</h3><div class="muted small">${esc(z.full)}</div></div>
-        <select class="status-sel" data-status="${z.id}" data-rerender="1" aria-label="My status">${STATUSES.map((s) => `<option ${statusOf(z.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+        <select class="status-sel" data-status="${z.id}" data-rerender="1" aria-label="My status">${statusOpts(statusOf(z.id))}</select></div>
       <div class="mline good" style="margin:10px 0">💰 ${esc(z.money)}</div>
       <p class="small"><b>Where:</b> ${esc(z.where)}</p>
       <p class="small"><b>Who can apply:</b> ${esc(z.who)}</p>
@@ -627,7 +630,7 @@
           ${p.docs.map((d, i) => { const k = `doc_${p.id}_${i}`; const on = store.get(k, false); return `<label class="check ${on ? "done" : ""}"><input type="checkbox" data-k="${k}" ${on ? "checked" : ""}><span class="txt">${esc(d)}</span></label>`; }).join("")}
           <p class="small muted">General papers (MOI letter, letters, CV) are also in <a href="#checklist">My checklist</a>.</p></div>
         <div class="card"><h3>📌 My application status</h3>
-          <select class="status-sel" data-status="${p.id}">${STATUSES.map((s) => `<option ${statusOf(p.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select>
+          <select class="status-sel" data-status="${p.id}">${statusOpts(statusOf(p.id))}</select>
           <p class="muted small">Saved in ${esc(prof().name)}'s profile and synced to your other devices.</p>
           <h3 style="margin-top:16px">📝 My notes</h3>
           <textarea class="notes" data-note="${p.id}" placeholder="Professors I emailed, login details hint, questions to ask...">${esc(store.get("note_" + p.id, ""))}</textarea></div>
@@ -729,15 +732,32 @@
     });
     store.set("apps_seeded", true); store.set("apps_seeded_ids", done);
   }
+  /* one-time changes to a profile's tracker (each runs once, keyed by its id) */
+  const UPDATES = {
+    mayar: [{ key: "2026-11-05-hildesheim-submitted", id: "hildesheim-da", status: "Applied",
+      note: "Submitted on 5 Nov 2026. Waiting for the admission decision (rolling admission, usually a few weeks). Check your email and the Hildesheim portal login." }],
+  };
+  function applyUpdates() {
+    const list = UPDATES[profile] || [], done = store.get("updates_done", []);
+    let changed = false;
+    list.forEach((u) => {
+      if (done.includes(u.key)) return;
+      done.push(u.key); changed = true;
+      if (u.status) raw.set(profile + "_status_" + u.id, u.status);
+      if (u.note) { const old = store.get("note_" + u.id, ""); raw.set(profile + "_note_" + u.id, u.note + (old ? "\n\n" + old : "")); }
+      const miss = store.get("miss_" + u.id, []); if (miss.length) raw.set(profile + "_miss_" + u.id, miss.map((m) => ({ ...m, done: true })));
+    });
+    if (changed) store.set("updates_done", done);
+  }
   function pageApps() {
-    seedApps();
+    seedApps(); applyUpdates();
     const started = PROGRAMS.filter((p) => statusOf(p.id) !== "Not started").sort((a, b) => STATUSES.indexOf(statusOf(a.id)) - STATUSES.indexOf(statusOf(b.id)));
     const notStarted = PROGRAMS.filter((p) => statusOf(p.id) === "Not started").sort((a, b) => a.rankAll - b.rankAll);
     const card = (p) => {
       const miss = store.get("miss_" + p.id, []), left = miss.filter((m) => !m.done).length, dl = nextDeadline(p);
       return `<div class="card app-card">
         <div class="app-head"><div><a href="#p/${p.id}"><b>${p.flag} ${esc(p.uni)}</b></a><div class="muted small">${esc(p.prog)}</div></div>
-          <select class="status-sel" data-status="${p.id}" data-rerender="1">${STATUSES.map((s) => `<option ${statusOf(p.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+          <select class="status-sel" data-status="${p.id}" data-rerender="1">${statusOpts(statusOf(p.id))}</select></div>
         <p class="small" style="margin:6px 0">${dl && dl.d ? `⏰ ${esc(dl.t)}: <b>${fmtDate(dl.d)}</b> (${daysLeft(dl.d) + " days left"})` : dl ? `⏰ ${esc(dl.t)}` : "⏰ No upcoming deadline listed"}
           &nbsp;<span class="chip ${left ? "pay" : "good"}">${left ? left + " still missing" : "Nothing missing"}</span></p>
         <h4 style="margin:10px 0 4px">Still missing</h4>
@@ -763,7 +783,7 @@
     const l = PHD.filter((x) => statusOf(x.id) !== "Not started").sort((a, b) => STATUSES.indexOf(statusOf(a.id)) - STATUSES.indexOf(statusOf(b.id)));
     return `<h2>🎓 Direct PhD I am tracking</h2>
       ${l.length ? `<div class="apps-grid">${l.map((x) => `<div class="card app-card"><div class="app-head"><div><b>${x.flag} ${esc(x.uni)}</b><div class="muted small">${esc(x.prog)}</div></div>
-        <select class="status-sel" data-status="${x.id}" data-rerender="1">${STATUSES.map((s) => `<option ${statusOf(x.id) === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+        <select class="status-sel" data-status="${x.id}" data-rerender="1">${statusOpts(statusOf(x.id))}</select></div>
         <p class="small" style="margin:6px 0">⏰ ${esc(x.deadline)} · <a href="${esc(x.link)}" target="_blank" rel="noopener">Official page ↗</a></p>
         <textarea class="notes" data-note="${x.id}" placeholder="Supervisors I emailed, portal login, what is missing...">${esc(store.get("note_" + x.id, ""))}</textarea></div>`).join("")}</div>`
         : '<p class="muted small">None yet. Open <a href="#phd">Direct PhD</a> and set a status on a program.</p>'}`;
@@ -869,7 +889,7 @@
         <form class="addrow" id="addCustom"><input name="t" placeholder="e.g. Translate birth certificate" maxlength="160" required><button class="fbtn on" type="submit">Add</button></form>
       </div></div>
       <h2>My applications</h2>
-      <div class="card"><table class="money">${apps.map((a) => `<tr><td><a href="#p/${a.p.id}">${a.p.flag} ${esc(a.p.uni)}</a><div class="muted small">${esc(a.p.prog)}</div></td><td><select class="status-sel" data-status="${a.p.id}">${STATUSES.map((s) => `<option ${a.s === s ? "selected" : ""}>${s}</option>`).join("")}</select></td></tr>`).join("")}</table></div>
+      <div class="card"><table class="money">${apps.map((a) => `<tr><td><a href="#p/${a.p.id}">${a.p.flag} ${esc(a.p.uni)}</a><div class="muted small">${esc(a.p.prog)}</div></td><td><select class="status-sel" data-status="${a.p.id}">${statusOpts(a.s)}</select></td></tr>`).join("")}</table></div>
       <h2>Tips for the letters</h2>
       <div class="grid">
 ${DS.tips}
@@ -998,6 +1018,7 @@ ${DS.moneyCards}
   function render() {
     document.body.classList.toggle("no-profile", !profile);
     if (!profile) { $("#app").innerHTML = pageProfiles(pendingPin); topActions(); return; }
+    seedApps(); applyUpdates();
     const h = (location.hash || "#home").slice(1);
     const [page, arg] = h.split("/");
     let html, tab = page;
