@@ -555,7 +555,7 @@
     if (p.tuitionFree && !p.blocked) say.push(`<div class="big-say good">✅ <div>You don't pay anything for the university.<br><span>${esc(p.tuitionLine)}</span></div></div>`);
     else say.push(`<div class="big-say ${p.blocked ? "good" : "warn"}">${p.blocked ? "✅" : "ℹ️"} <div>${p.blocked ? "No tuition fees." : "Tuition"}<br><span>${esc(p.tuitionLine.replace(/^No tuition\. /, ""))}</span></div></div>`);
     if (p.stipend) say.push(`<div class="big-say good">💰 <div>You get a stipend.<br><span>${esc(p.stipend.text)}</span></div></div>`);
-    else say.push(`<div class="big-say pay">💸 <div>No stipend.<br><span>You live on your own money (the blocked account). You are allowed to work up to 20 hours a week.</span></div></div>`);
+    else say.push(p.blocked || p.country === "Germany" ? `<div class="big-say pay">💸 <div>No stipend.<br><span>You live on your own money (the blocked account). You are allowed to work up to 20 hours a week.</span></div></div>` : `<div class="big-say pay">💸 <div>No stipend.<br><span>You need your own money for living. See "How do I get the money" below for grants you can apply for.</span></div></div>`);
     if (p.blocked) say.push(`<div class="big-say pay">🏦 <div>Blocked account needed: EUR ${num(p.blocked.total)} for ${p.blocked.months} months (EUR ${num(p.blocked.perMonth)} per month).<br><span>${esc(p.blocked.note)}</span></div></div>`);
     const zs = zuseFor(p);
     if (zs.length) say.push(`<div class="big-say good">🎓 <div>Extra DAAD scholarship possible on top: ${zs.map((z) => esc(z.name)).join(", ")}<br><span>Up to about EUR 934 to 992 per month. <a href="#daad">See the requirements in the DAAD tab</a></span></div></div>`);
