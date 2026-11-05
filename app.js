@@ -171,7 +171,8 @@
     : '<span class="chip warn">MOI: email to confirm</span>';
   const ENG_OPTS = ["All", "MOI (no IELTS)", "MOI confirmed", "IELTS / test needed"];
   const engOk = (p) => F.eng === "All" || (F.eng === "MOI (no IELTS)" && p.eng.s !== "ielts") || (F.eng === "MOI confirmed" && p.eng.s === "yes") || (F.eng === "IELTS / test needed" && p.eng.s === "ielts");
-  const engBtns = () => ENG_OPTS.map((o) => `<button class="fbtn ${F.eng === o ? "on" : ""}" data-f="eng" data-v="${esc(o)}">${esc(o)}</button>`).join("");
+  const engCount = (o) => { const keep = F.eng; F.eng = o; const n = PROGRAMS.filter(engOk).length; F.eng = keep; return n; };
+  const engBtns = () => ENG_OPTS.map((o) => `<button class="fbtn ${F.eng === o ? "on" : ""}" data-f="eng" data-v="${esc(o)}">${esc(o)} (${engCount(o)})</button>`).join("");
   const wr = (w) => (/^=/.test(w) ? "#" + w.slice(1) + " (tied)" : /^\d+$/.test(w) ? "#" + w : w);
   const hasWorld = (p) => !!p.rank.world && /^[=\d]/.test(p.rank.world);
   const rankChips = (p) => hasWorld(p)
