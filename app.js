@@ -185,6 +185,11 @@
   /* "Applied" means submitted and waiting for the university's decision */
   const STATUS_LABEL = { Applied: "Applied, waiting for decision" };
   const statusOpts = (cur) => STATUSES.map((s) => `<option value="${s}" ${cur === s ? "selected" : ""}>${STATUS_LABEL[s] || s}</option>`).join("");
+  /* favourites (heart) and status colours */
+  const isFav = (id) => store.get("fav_" + id, false);
+  const favBtn = (id, big) => { const on = isFav(id); return `<button class="fav-btn${on ? " on" : ""}${big ? " big" : ""}" data-fav="${id}" aria-pressed="${on}" title="${on ? "Remove from favourites" : "Add to favourites"}" aria-label="${on ? "Remove from favourites" : "Add to favourites"}">${on ? "♥" : "♡"}</button>`; };
+  const stClass = (id) => " st-" + statusOf(id).toLowerCase().replace(/\s+/g, "-");
+  const ctyClass = (c) => (c === "Germany" ? " cty-de" : c === "Italy" ? " cty-it" : "");
 
   function moneySummary(p) {
     const c = calc(p);
@@ -201,9 +206,9 @@
   function card(p, rankKey) {
     const nd = nextDeadline(p);
     const dl = nd ? (nd.d ? `${fmtDate(nd.d)} · ${daysLeft(nd.d)} days left` : (nd.asap ? "Rolling: apply now" : "Check the official page")) : "Closed for now";
-    return `<a class="card pcard" href="#p/${p.id}">
+    return `<a class="card pcard${stClass(p.id)}${ctyClass(p.country)}" href="#p/${p.id}">
       <div class="head"><div class="rank">${p[rankKey]}</div>
-        <div><div class="uni">${p.flag} ${esc(p.uni)}</div><div class="prog">${esc(p.prog)}</div></div></div>
+        <div style="flex:1"><div class="uni">${p.flag} ${esc(p.uni)}</div><div class="prog">${esc(p.prog)}</div></div>${favBtn(p.id)}</div>
       <div class="chips"><span class="chip plain">${esc(p.city)}</span><span class="chip plain">${esc(p.duration)}</span>${p.field.map((f) => `<span class="chip">${f}</span>`).join("")}</div>
       <div class="chips">${rankChips(p)}</div>
       <div class="chips">${engChip(p)}${chanceChip(p.chance)}${zuseFor(p).length ? `<span class="chip good">+ DAAD ${zuseFor(p).map((z) => z.name.replace("Zuse School ", "")).join("/")}</span>` : ""}${p.country === "Germany" ? (p.direct ? '<span class="chip good">Apply directly, no uni-assist</span>' : '<span class="chip plain">Via uni-assist</span>') : ""}</div>
@@ -250,8 +255,8 @@
     const list = upcoming(30);
     if (!list.length) return "";
     return `<div class="remind"><div class="remind-head"><b>⏰ Coming up in the next 30 days</b><button class="cal-btn" data-ics-all="1">📅 Add all deadlines to my calendar</button></div>
-      ${list.map((x) => `<div class="remind-row"><a href="#p/${x.p.id}"><span class="days-pill">${x.n === 0 ? "Today" : x.n + (x.n === 1 ? " day" : " days")}</span> ${x.p.flag} <b>${esc(x.p.uni)}</b> <span class="muted small">${esc(x.d.t)}</span></a>${calBtn(x.p, x.i)}</div>`).join("")}
-      <p class="small muted" style="margin:6px 0 0">Programs you marked Applied, Accepted, Rejected or Not applying are hidden here.</p></div>`;
+      ${list.slice(0, 4).map((x) => `<div class="remind-row"><a href="#p/${x.p.id}"><span class="days-pill">${x.n === 0 ? "Today" : x.n + (x.n === 1 ? " day" : " days")}</span> ${x.p.flag} <b>${esc(x.p.uni)}</b> <span class="muted small">${esc(x.d.t)}</span></a>${calBtn(x.p, x.i)}</div>`).join("")}
+      <p class="small muted" style="margin:6px 0 0">${list.length > 4 ? `<a href="#deadlines"><b>See all ${list.length} in Deadlines →</b></a> · ` : ""}Programs you marked Applied, Accepted, Rejected or Not applying are hidden here.</p></div>`;
   }
 
   /* ---------- compare ---------- */
@@ -304,8 +309,10 @@
         <ol class="toplist">${list.map((p) => topRow(p, "rankSec")).join("")}</ol></div>`;
     };
     return `
-      ${reminderBanner()}
       <h1>${esc(prof().name)}'s master's options for 2027</h1>
+      ${SECTIONS.de || SECTIONS.it ? `<div class="hero-cty">${["de", "it"].filter((k) => SECTIONS[k]).map((k) => { const l = PROGRAMS.filter((p) => p.sec === k); const moi = l.filter((p) => p.eng.s !== "ielts").length; const nx = l.map((p) => nextDeadline(p)).filter((d) => d && d.d).sort((a, b) => a.d.localeCompare(b.d))[0];
+        return `<a class="hero-tile ${k}" href="#all/${k}"><div class="ht-flag">${SECTIONS[k].icon}</div><div><b>${k === "de" ? "Germany" : "Italy"}: ${l.length} programs</b><span>${k === "de" ? "No tuition at public universities" : "Low fees and regional scholarships"} · ${moi} accept MOI</span>${nx ? `<span class="ht-dl">Next deadline: ${fmtDate(nx.d)} (${daysLeft(nx.d)} days)</span>` : ""}</div><span class="ht-go">See all →</span></a>`; }).join("")}</div>` : ""}
+      ${reminderBanner()}
       <p class="lead">${esc(DS.lead)}</p>
       <div class="stats">
         <div class="stat"><b>${PROGRAMS.filter((p) => p.eng.s !== "ielts").length}</b><span>programs with MOI (no IELTS)${PROGRAMS.some((p) => p.eng.s === "ielts") ? " + " + PROGRAMS.filter((p) => p.eng.s === "ielts").length + " more with IELTS" : ""}</span></div>
@@ -317,7 +324,7 @@
         <div class="sec-head"><h2>⭐ My overall top 5</h2><a href="#best">Full ranking →</a></div>
         <ol class="toplist">${sorted.slice(0, 5).map((p) => topRow(p, "rankAll")).join("")}</ol>
       </div>
-      ${Object.keys(SECTIONS).map(sec).join("")}`;
+      ${[...["de", "it"].filter((k) => SECTIONS[k]), ...Object.keys(SECTIONS).filter((k) => k !== "de" && k !== "it")].map(sec).join("")}`;
   }
 
   function topRow(p, rk) {
@@ -326,7 +333,7 @@
     if (p.stipend && p.stipend.total) right = `<span class="chip good">Stipend ${money(p.stipend.perYear || p.stipend.total / (p.living.months / 12), p.cur)}/yr</span>`;
     else if (p.stipend) right = `<span class="chip good">Funded (offer)</span>`;
     else right = `<span class="chip">Uni cost ${money(c.uni, p.cur)} total</span>`;
-    return `<li><a href="#p/${p.id}"><div class="rank">${p[rk]}</div>
+    return `<li class="${stClass(p.id).trim()}${ctyClass(p.country)}"><a href="#p/${p.id}"><div class="rank">${p[rk]}</div>
       <div><div class="t1">${p.flag} ${esc(p.uni)}</div><div class="t2">${esc(p.prog)}</div></div>
       <div class="right">${right}<div class="muted" style="margin-top:4px">${hasWorld(p) ? "World " + esc(wr(p.rank.world)) + " · " : ""}${chanceTxt(p)}</div></div></a></li>`;
   }
@@ -442,8 +449,8 @@
   }
   function phdCard(x) {
     const e = PHD_ENG[x.eng], n = x.d ? daysLeft(x.d) : null;
-    return `<div class="card pcard phd-card">
-      <div class="uni">${x.flag} ${esc(x.uni)}</div><div class="prog">${esc(x.prog)}</div>
+    return `<div class="card pcard phd-card${stClass(x.id)}">
+      <div class="fav-row"><div class="uni">${x.flag} ${esc(x.uni)}</div>${favBtn(x.id)}</div><div class="prog">${esc(x.prog)}</div>
       <div class="chips"><span class="chip plain">${esc(x.region)}</span><span class="chip ${e[0]}">${e[1]}</span>${x.checked ? '<span class="chip good">✓ Checked</span>' : '<span class="chip plain">Confirm on official page</span>'}</div>
       <div class="mline good">💰 ${esc(x.money)}</div>
       <div class="small"><b>English:</b> ${esc(x.engText)}</div>
@@ -461,7 +468,7 @@
     const row = (k, v) => v ? `<tr><td class="rl"><b>${k}</b></td><td>${esc(v)}</td></tr>` : "";
     const list = (a, ol) => `<${ol ? "ol" : "ul"} class="list-plain">${a.map((s) => `<li>${esc(s)}</li>`).join("")}</${ol ? "ol" : "ul"}>`;
     return `<p><a href="#phd">← All direct PhD programs</a></p>
-      <h1>${x.flag} ${esc(x.uni)}</h1>
+      <div class="fav-row"><h1>${x.flag} ${esc(x.uni)}</h1>${favBtn(x.id, true)}</div>
       <p class="lead" style="margin-bottom:8px">${esc(x.prog)}</p>
       <div class="chips" style="margin-bottom:12px"><span class="chip plain">${esc(x.region)}</span><span class="chip ${e[0]}">${e[1]}</span>${t.verified ? '<span class="chip good">✓ Details checked on the official page</span>' : '<span class="chip warn">Usual rules for this kind of program: confirm on the official page</span>'}</div>
       <div class="big-say good">🗓️ <div>If you are accepted, you go in: ${esc(t.start)}<br><span>Length: ${esc(t.length)}</span></div></div>
@@ -519,8 +526,8 @@
     const list = (a, ol) => `<${ol ? "ol" : "ul"} class="list-plain">${a.map((x) => `<li>${esc(x)}</li>`).join("")}</${ol ? "ol" : "ul"}>`;
     const done = z.docs.filter((_, i) => store.get(`zdoc_${z.id}_${i}`, false)).length;
     const mine = z.progs.map(byId).filter(Boolean);
-    return `<div class="card zuse" id="${z.id}">
-      <div class="app-head"><div><h3 style="margin:0">${esc(z.name)}</h3><div class="muted small">${esc(z.full)}</div></div>
+    return `<div class="card zuse${stClass(z.id)}" id="${z.id}">
+      <div class="app-head"><div><h3 style="margin:0">${favBtn(z.id)} ${esc(z.name)}</h3><div class="muted small">${esc(z.full)}</div></div>
         <select class="status-sel" data-status="${z.id}" data-rerender="1" aria-label="My status">${statusOpts(statusOf(z.id))}</select></div>
       <div class="mline good" style="margin:10px 0">💰 ${esc(z.money)}</div>
       <p class="small"><b>Where:</b> ${esc(z.where)}</p>
@@ -552,6 +559,81 @@
   }
 
 
+
+  /* ---------- favourites: everything she hearted, in one place ---------- */
+  const FV = { kind: "All", cty: "All", st: "All" };
+  const ST_ORDER = { "Accepted": 0, "Preparing": 1, "Not started": 1, "Applied": 3, "Rejected": 4, "Not applying": 4 };
+  const ST_NAME = { "Not started": "Just saved", "Preparing": "Started", "Applied": "Applied", "Accepted": "Accepted", "Rejected": "Rejected", "Not applying": "Not applying" };
+  /* every item on the site in one shape */
+  function allItems() {
+    const nd = (arr) => { const d = (arr || []).find((x) => x.d && daysLeft(x.d) >= 0); return d ? { d: d.d, t: d.t } : { d: null, t: (arr && arr[0] && arr[0].t) || "" }; };
+    const out = PROGRAMS.map((p) => { const d = nextDeadline(p); return { id: p.id, kind: "Master's", flag: p.flag, title: p.prog, sub: p.uni, cty: p.country, d: d && d.d ? d.d : null, dt: d ? d.t : "Closed for now", href: "#p/" + p.id, p }; });
+    if (hasPhd()) PHD.forEach((x) => out.push({ id: x.id, kind: "PhD", flag: x.flag, title: x.prog, sub: x.uni, cty: x.region, d: x.d && daysLeft(x.d) >= 0 ? x.d : null, dt: x.deadline, href: "#phd/" + x.id }));
+    if (hasZuse()) ZUSE.forEach((z) => { const n = nd(z.deadlines); out.push({ id: z.id, kind: "Scholarship", flag: "🇩🇪", title: z.name, sub: "DAAD scholarship", cty: "Germany", d: n.d, dt: n.t, href: "#daad/" + z.id }); });
+    if (typeof OPPS !== "undefined") oppsFor().forEach((o) => { const n = nd(o.deadlines); out.push({ id: o.id, kind: "Internship and more", flag: o.flag, title: o.name, sub: o.type, cty: o.where.split(", ").pop(), d: n.d, dt: n.t, href: "#more" }); });
+    return out;
+  }
+  /* uni-assist: EUR 75 for the first programme in a semester, EUR 30 for each more (same price for VPD) */
+  const needsUniAssist = (p) => p && p.country === "Germany" && !p.direct && /uni-assist/i.test(p.applyVia + " " + (p.uniLines || []).map((r) => r[0]).join(" "));
+  const semesterOf = (p) => (startsSpring(p) ? "Summer semester 2027" : "Winter semester 2027/28");
+  const egpX = (n) => (rates.EUR ? "about EGP " + num(Math.round((n * rates.EUR) / 10) * 10) : "");
+  function uniAssistCalc(items) {
+    const ua = items.filter((x) => x.p && needsUniAssist(x.p) && !["Rejected", "Not applying"].includes(statusOf(x.id)));
+    if (!ua.length) return `<div class="card ua-calc"><h3>🧾 uni-assist fees</h3><p class="muted small" style="margin:0">None of your favourites needs uni-assist. Heart German programs that apply through uni-assist to see the total here.</p></div>`;
+    const sems = {}; ua.forEach((x) => (sems[semesterOf(x.p)] = sems[semesterOf(x.p)] || []).push(x));
+    let total = 0, left = 0;
+    const rows = Object.entries(sems).map(([sem, l]) => {
+      l.sort((a, b) => (statusOf(b.id) === "Applied") - (statusOf(a.id) === "Applied"));
+      return `<tr><td colspan="2" class="ua-sem"><b>${esc(sem)}</b> <span class="muted small">(${l.length} program${l.length > 1 ? "s" : ""})</span></td></tr>` + l.map((x, i) => {
+        const fee = i === 0 ? 75 : 30, paid = ["Applied", "Accepted"].includes(statusOf(x.id));
+        total += fee; if (!paid) left += fee;
+        return `<tr><td>${x.flag} ${esc(x.sub.split(" (")[0])}<div class="muted small">${esc(x.title)} · ${i === 0 ? "first program this semester" : "each extra program"}${paid ? " · already paid" : ""}</div></td><td>${money(fee, "EUR")}</td></tr>`;
+      }).join("");
+    }).join("");
+    return `<div class="card ua-calc"><h3>🧾 uni-assist fees for your favourites</h3>
+      <p class="muted small" style="margin-top:0">uni-assist charges EUR 75 for the first program in a semester and EUR 30 for each extra program in the same semester. A VPD costs the same. Programs that apply directly to the university are not counted.</p>
+      <table class="money">${rows}
+        <tr class="total"><td>Total uni-assist fees</td><td>${money(total, "EUR")}<div class="muted small">${egpX(total)}</div></td></tr>
+        ${left !== total ? `<tr><td>Still to pay (not applied yet)</td><td><b>${money(left, "EUR")}</b><div class="muted small">${egpX(left)}</div></td></tr>` : ""}</table></div>`;
+  }
+  function favCard(x) {
+    const st = statusOf(x.id), n = x.d ? daysLeft(x.d) : null;
+    const small = st === "Applied" || st === "Rejected" || st === "Not applying";
+    return `<div class="card fav-card${stClass(x.id)}${ctyClass(x.cty)}${small ? " compact" : ""}">
+      <div class="fav-row"><a href="${x.href}" class="fav-title"><span class="st-dot"></span><b>${x.flag} ${esc(x.title)}</b><div class="muted small">${esc(x.sub)} · ${esc(x.kind)}</div></a>${favBtn(x.id)}</div>
+      ${small ? "" : `<div class="small">⏰ ${x.d ? `<b>${fmtDate(x.d)}</b> · <span class="${n <= 14 ? "urgent" : ""}">${n} days left</span>` : esc(x.dt || "No fixed deadline")}</div>`}
+      <div class="fav-foot"><span class="st-pill">${esc(ST_NAME[st] || st)}</span>
+        <select class="status-sel" data-status="${x.id}" data-rerender="1" aria-label="My status">${statusOpts(st)}</select></div>
+    </div>`;
+  }
+  function pageFav() {
+    const all = allItems().filter((x) => isFav(x.id));
+    if (!all.length) return `<h1>♥ My favourites</h1><div class="empty">Nothing here yet. Tap the ♡ on any program, PhD, DAAD scholarship or internship and it will appear here, sorted by deadline.</div>`;
+    const kinds = ["All", ...new Set(all.map((x) => x.kind))];
+    const ctys = ["All", ...["Germany", "Italy"].filter((c) => all.some((x) => x.cty === c)), ...(all.some((x) => !["Germany", "Italy"].includes(x.cty)) ? ["Other countries"] : [])];
+    const sts = ["All", "Just saved", "Started", "Applied", "Accepted", "Closed"];
+    const stOk = (x) => { const s = statusOf(x.id); return FV.st === "All" || (FV.st === "Closed" ? ["Rejected", "Not applying"].includes(s) : ST_NAME[s] === FV.st); };
+    const l = all.filter((x) => (FV.kind === "All" || x.kind === FV.kind) && (FV.cty === "All" || (FV.cty === "Other countries" ? !["Germany", "Italy"].includes(x.cty) : x.cty === FV.cty)) && stOk(x))
+      .sort((a, b) => (ST_ORDER[statusOf(a.id)] - ST_ORDER[statusOf(b.id)]) || ((a.d || "9999").localeCompare(b.d || "9999")));
+    const btn = (k, v, n) => `<button class="fbtn ${FV[k] === v ? "on" : ""}" data-fv="${k}" data-v="${esc(v)}">${esc(v)}${n != null ? ` (${n})` : ""}</button>`;
+    const cnt = (s) => all.filter((x) => s.includes(statusOf(x.id))).length;
+    return `<h1>♥ My favourites</h1>
+      <p class="lead">Everything you hearted, in one list. Accepted first, then by nearest deadline. Programs you already applied to go to the bottom as small cards.</p>
+      <div class="stats">
+        <div class="stat st-not-started"><b>${cnt(["Not started"])}</b><span>just saved</span></div>
+        <div class="stat st-preparing"><b>${cnt(["Preparing"])}</b><span>started</span></div>
+        <div class="stat st-applied"><b>${cnt(["Applied"])}</b><span>applied, waiting</span></div>
+        <div class="stat st-accepted"><b>${cnt(["Accepted"])}</b><span>accepted</span></div>
+      </div>
+      <div class="filters">
+        <div class="frow"><label>Type</label>${kinds.map((k) => btn("kind", k, k === "All" ? all.length : all.filter((x) => x.kind === k).length)).join("")}</div>
+        <div class="frow"><label>Country</label>${ctys.map((c) => btn("cty", c)).join("")}</div>
+        <div class="frow"><label>Status</label>${sts.map((v) => btn("st", v)).join("")}</div>
+      </div>
+      ${l.length ? `<div class="fav-grid">${l.map(favCard).join("")}</div>` : '<div class="empty">No favourite matches these filters.</div>'}
+      ${uniAssistCalc(all)}`;
+  }
+
   /* ---------- other opportunities: internships, summer schools, free training ---------- */
   const OF = { type: "All" };
   const hasOpps = () => typeof OPPS !== "undefined";
@@ -559,8 +641,8 @@
   function oppCard(o) {
     const list = (a, ol) => `<${ol ? "ol" : "ul"} class="list-plain">${a.map((x) => `<li>${esc(x)}</li>`).join("")}</${ol ? "ol" : "ul"}>`;
     const done = o.docs.filter((_, i) => store.get(`odoc_${o.id}_${i}`, false)).length;
-    return `<div class="card zuse" id="${o.id}">
-      <div class="app-head"><div><h3 style="margin:0">${o.flag} ${esc(o.name)}</h3><div class="muted small">${esc(o.where)}</div></div>
+    return `<div class="card zuse${stClass(o.id)}" id="${o.id}">
+      <div class="app-head"><div><h3 style="margin:0">${favBtn(o.id)} ${o.flag} ${esc(o.name)}</h3><div class="muted small">${esc(o.where)}</div></div>
         <select class="status-sel" data-status="${o.id}" data-rerender="1" aria-label="My status">${statusOpts(statusOf(o.id))}</select></div>
       <div class="chips" style="margin:8px 0"><span class="chip plain">${esc(o.type)}</span><span class="chip good">${esc(o.cost)}</span>${o.checked ? '<span class="chip good">✓ Checked</span>' : '<span class="chip plain">Confirm on official page</span>'}</div>
       <div class="mline good" style="margin:6px 0">💰 ${esc(o.money)}</div>
@@ -622,7 +704,8 @@
       <a class="back" href="javascript:history.back()">← Back</a>
       <div class="dhead"><div class="flag">${p.flag}</div><div style="flex:1;min-width:240px">
         <div class="chips"><span class="chip">#${p.rankAll} best for me</span>${engChip(p)}${chanceChip(p.chance)}</div>
-        <h1>${esc(p.prog)}</h1><div class="lead" style="margin:0">${esc(p.uni)} · ${esc(p.city)} · ${esc(p.duration)}</div></div></div>
+        <div class="fav-row"><h1>${esc(p.prog)}</h1>${favBtn(p.id, true)}</div><div class="lead" style="margin:0">${esc(p.uni)} · ${esc(p.city)} · ${esc(p.duration)}</div>
+        <div class="hero-status"><label class="small muted" for="hs-${p.id}">My status</label><select id="hs-${p.id}" class="status-sel" data-status="${p.id}" data-rerender="1" aria-label="My application status">${statusOpts(statusOf(p.id))}</select>${(() => { const d = nextDeadline(p); return d && d.d ? `<span class="chip ${daysLeft(d.d) <= 14 ? "pay" : ""}">⏰ ${fmtDate(d.d)} · ${daysLeft(d.d)} days left</span>` : ""; })()}</div></div></div>
       <div class="rankbox">
         <div><small>World ranking</small><b>${p.rank.world ? esc(wr(p.rank.world)) : "Not ranked"}</b></div>
         <div><small>Ranking in ${esc(p.country)}</small><b>${esc(p.rank.country)}</b></div>
@@ -676,7 +759,8 @@
           ${p.docs.map((d, i) => { const k = `doc_${p.id}_${i}`; const on = store.get(k, false); return `<label class="check ${on ? "done" : ""}"><input type="checkbox" data-k="${k}" ${on ? "checked" : ""}><span class="txt">${esc(d)}</span></label>`; }).join("")}
           <p class="small muted">General papers (MOI letter, letters, CV) are also in <a href="#checklist">My checklist</a>.</p></div>
         <div class="card"><h3>📌 My application status</h3>
-          <select class="status-sel" data-status="${p.id}">${statusOpts(statusOf(p.id))}</select>
+          <select class="status-sel" data-status="${p.id}" aria-label="My application status">${statusOpts(statusOf(p.id))}</select>
+          ${portalBox(p.id)}
           <p class="muted small">Saved in ${esc(prof().name)}'s profile and synced to your other devices.</p>
           <h3 style="margin-top:16px">📝 My notes</h3>
           <textarea class="notes" data-note="${p.id}" placeholder="Professors I emailed, login details hint, questions to ask...">${esc(store.get("note_" + p.id, ""))}</textarea></div>
@@ -795,6 +879,17 @@
     });
     if (changed) store.set("updates_done", done);
   }
+
+  /* portal record: where she applied and the numbers she needs later */
+  const PR_FIELDS = [["url", "Portal link", "https://..."], ["user", "Username or email used", "e.g. myar.issa2003@gmail.com"], ["no", "Applicant or reference number", "e.g. uni-assist 3622543"], ["sent", "Submitted on", "", "date"], ["decision", "Decision expected by", "", "date"], ["interview", "Interview or test date", "", "date"]];
+  function portalBox(id) {
+    const r = store.get("portal_" + id, {});
+    const filled = PR_FIELDS.filter((f) => r[f[0]]).length;
+    return `<details class="portal"${filled ? "" : ""}><summary>🔑 Portal and reference numbers <span class="muted small">(${filled}/${PR_FIELDS.length})</span></summary>
+      <div class="portal-grid">${PR_FIELDS.map(([k, label, ph, type]) => `<label><span>${label}</span><input type="${type || "text"}" data-pr="${id}|${k}" value="${esc(r[k] || "")}" placeholder="${esc(ph)}"></label>`).join("")}</div>
+      ${r.url ? `<a class="fbtn" href="${esc(/^https?:/.test(r.url) ? r.url : "https://" + r.url)}" target="_blank" rel="noopener">Open portal ↗</a>` : ""}
+      <p class="muted small" style="margin:6px 0 0">Never save passwords here.</p></details>`;
+  }
   function pageApps() {
     seedApps(); applyUpdates();
     const started = PROGRAMS.filter((p) => statusOf(p.id) !== "Not started").sort((a, b) => STATUSES.indexOf(statusOf(a.id)) - STATUSES.indexOf(statusOf(b.id)));
@@ -810,6 +905,7 @@
         ${miss.map((m, i) => `<div class="check ${m.done ? "done" : ""}"><input type="checkbox" data-miss="${p.id}|${i}" ${m.done ? "checked" : ""}><span class="txt" style="flex:1">${esc(m.text)}</span><button class="del" data-missdel="${p.id}|${i}" title="Remove">✕</button></div>`).join("") || '<p class="muted small">Nothing listed yet.</p>'}
         <form class="addrow addMiss" data-id="${p.id}"><input name="t" placeholder="Add what is still missing..." maxlength="160" required><button class="fbtn on" type="submit">Add</button></form>
         ${DOC_FILES[profile] ? `<p class="small" style="margin:10px 0 0"><a href="#docs/${p.id}">📄 CV, motivation letter and records for this program</a></p>` : ""}
+        ${portalBox(p.id)}
         <h4 style="margin:12px 0 4px">My note</h4>
         <textarea class="notes" data-note="${p.id}" placeholder="Login link, what I wrote, who I emailed...">${esc(store.get("note_" + p.id, ""))}</textarea>
       </div>`;
@@ -1077,6 +1173,7 @@ ${DS.moneyCards}
     else if (page === "phd") html = pagePhd(arg);
     else if (page === "daad") html = pageDaad();
     else if (page === "more") html = pageMore();
+    else if (page === "fav") html = pageFav();
     else if (page === "docs") { html = pageDocs(arg); tab = "docs"; }
     else if (page === "money") html = pageMoney();
     else if (page === "profile") html = pageSettings();
@@ -1087,6 +1184,7 @@ ${DS.moneyCards}
     if (page === "docs" && arg) { const el = document.getElementById("doc-" + arg); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
     if (page === "daad" && arg) { const el = document.getElementById(arg); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
     if (page === "money" && arg === "daad") { const el = $("#daad"); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }
+    setTimeout(() => { const on = document.querySelector("#tabs a.on"); if (on && window.innerWidth < 700) on.scrollIntoView({ block: "nearest", inline: "center" }); }, 0);
     document.querySelectorAll("#tabs a").forEach((a) => { a.classList.toggle("on", a.dataset.tab === tab); if (a.dataset.tab === "phd") a.hidden = !hasPhd(); });
     topActions();
   }
@@ -1141,6 +1239,7 @@ ${DS.moneyCards}
   document.addEventListener("input", (e) => {
     if (e.target.id === "q" || e.target.id === "phdq") { const el = e.target, obj = el.id === "q" ? F : PF; clearTimeout(qTimer); qTimer = setTimeout(() => liveSearch(el, obj), 180); return; }
     if (e.target.dataset.note) store.set("note_" + e.target.dataset.note, e.target.value);
+    if (e.target.dataset.pr) { const [id, k] = e.target.dataset.pr.split("|"); const r = store.get("portal_" + id, {}); r[k] = e.target.value; store.set("portal_" + id, r); }
     if (e.target.dataset.letter) store.set("letter_" + e.target.dataset.letter, e.target.value);
   });
   document.addEventListener("click", (e) => {
@@ -1163,6 +1262,8 @@ ${DS.moneyCards}
       downloadIcs(ev, "all-deadlines"); return;
     }
     const cq = e.target.closest("[data-clearq]"); if (cq) { (cq.dataset.clearq === "q" ? F : PF).q = ""; render(); return; }
+    const fvb = e.target.closest("[data-fav]"); if (fvb) { e.preventDefault(); e.stopPropagation(); const id = fvb.dataset.fav, on = !isFav(id); store.set("fav_" + id, on); alertBox(on ? "Added to favourites ♥" : "Removed from favourites"); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
+    const fvf = e.target.closest("[data-fv]"); if (fvf) { FV[fvf.dataset.fv] = fvf.dataset.v; const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const of = e.target.closest("[data-of]"); if (of) { OF.type = of.dataset.of; const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const pf = e.target.closest("[data-pf]"); if (pf) { PF[pf.dataset.pf] = pf.dataset.v; const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const pi = e.target.closest("[data-phdics]");
@@ -1196,7 +1297,7 @@ ${DS.moneyCards}
     if (t.dataset.custom) { const list = store.get("custom", []); list[+t.dataset.custom].done = t.checked; store.set("custom", list); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (t.dataset.k) { store.set(t.dataset.k, t.checked); const y = window.scrollY; render(); window.scrollTo(0, y); }
     else if (t.dataset.miss) { const [id, i] = t.dataset.miss.split("|"); const list = store.get("miss_" + id, []); if (list[+i]) list[+i].done = t.checked; store.set("miss_" + id, list); const y = window.scrollY; render(); window.scrollTo(0, y); }
-    else if (t.dataset.status) { store.set("status_" + t.dataset.status, t.value); if (t.dataset.rerender) { const y = window.scrollY; render(); window.scrollTo(0, y); } }
+    else if (t.dataset.status) { store.set("status_" + t.dataset.status, t.value); alertBox("Status saved: " + (STATUS_LABEL[t.value] || t.value)); if (t.dataset.rerender) { const y = window.scrollY; render(); window.scrollTo(0, y); } }
     else if (t.id === "sort") { F.sort = t.value; render(); }
     else if (t.id === "phdsort") { PF.sort = t.value; render(); }
     else if (t.dataset.ref) { const [i, id] = t.dataset.ref.split("|"); const list = store.get("refs", []); if (list[+i]) { list[+i].st = list[+i].st || {}; list[+i].st[id] = t.value; store.set("refs", list); } }
