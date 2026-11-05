@@ -169,10 +169,12 @@
     ? '<span class="chip good">MOI accepted, no IELTS</span>'
     : p.eng.s === "ielts" ? '<span class="chip pay">IELTS / test needed</span>'
     : '<span class="chip warn">MOI: email to confirm</span>';
-  const ENG_OPTS = ["All", "MOI (no IELTS)", "MOI confirmed", "IELTS / test needed"];
-  const engOk = (p) => F.eng === "All" || (F.eng === "MOI (no IELTS)" && p.eng.s !== "ielts") || (F.eng === "MOI confirmed" && p.eng.s === "yes") || (F.eng === "IELTS / test needed" && p.eng.s === "ielts");
-  const engCount = (o) => { const keep = F.eng; F.eng = o; const n = PROGRAMS.filter(engOk).length; F.eng = keep; return n; };
-  const engBtns = () => ENG_OPTS.map((o) => `<button class="fbtn ${F.eng === o ? "on" : ""}" data-f="eng" data-v="${esc(o)}">${esc(o)} (${engCount(o)})</button>`).join("");
+  /* English filter: pick one or more kinds (none picked = all) */
+  const ENG_OPTS = ["MOI confirmed", "MOI (ask first)", "IELTS / test needed"];
+  const engKind = (p) => (p.eng.s === "yes" ? "MOI confirmed" : p.eng.s === "ielts" ? "IELTS / test needed" : "MOI (ask first)");
+  const engOk = (p) => !F.engs.length || F.engs.includes(engKind(p));
+  const engBtns = () => `<button class="fbtn ${F.engs.length ? "" : "on"}" data-fclear="engs">All (${PROGRAMS.length})</button>` +
+    ENG_OPTS.map((o) => `<button class="fbtn ${F.engs.includes(o) ? "on" : ""}" data-fm="engs" data-v="${esc(o)}" aria-pressed="${F.engs.includes(o)}">${F.engs.includes(o) ? "✓ " : ""}${esc(o)} (${PROGRAMS.filter((p) => engKind(p) === o).length})</button>`).join("");
   const wr = (w) => (/^=/.test(w) ? "#" + w.slice(1) + " (tied)" : /^\d+$/.test(w) ? "#" + w : w);
   const hasWorld = (p) => !!p.rank.world && /^[=\d]/.test(p.rank.world);
   const rankChips = (p) => hasWorld(p)
@@ -355,7 +357,7 @@
     </div>`).join("")}</div>`;
   }
 
-  const F = { country: "All", field: "All", money: "All", eng: "All", apply: "All", start: "All", sort: "rank", q: "" };
+  const F = { countries: [], field: "All", money: "All", engs: [], apply: "All", start: "All", sort: "rank", q: "" };
   /* text search: every word must appear somewhere in the program's main text */
   const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const matchQ = (q, parts) => { const hay = norm(parts.join(" ")); return norm(q).split(/\s+/).filter(Boolean).every((w) => hay.includes(w)); };
@@ -366,17 +368,15 @@
   const SPRING = "Spring 2027 (March / April)";
   const startsSpring = (p) => /\b(March|April)\b/.test(p.intake || "");
   function pageAll(secArg) {
-    if (secArg) {
-      F.country = SECTIONS[secArg] ? SECTIONS[secArg].name : "All";
-    }
+    if (secArg) F.countries = SECTIONS[secArg] ? [SECTIONS[secArg].name] : [];
     const regionNames = Object.values(SECTIONS).map((s) => s.name);
-    const countries = [...new Set(["All", ...regionNames, ...PROGRAMS.map((p) => p.country)])];
+    const countries = [...new Set([...regionNames, ...PROGRAMS.map((p) => p.country)])];
     const secOf = (name) => Object.keys(SECTIONS).find((k) => SECTIONS[k].name === name);
+    const inPlace = (p, c) => { const sk = secOf(c); return sk ? p.sec === sk || p.country === c : p.country === c; };
+    const ctyBtns = `<button class="fbtn ${F.countries.length ? "" : "on"}" data-fclear="countries">All</button>` + countries.map((c) => { const on = F.countries.includes(c); return `<button class="fbtn ${on ? "on" : ""}" data-fm="countries" data-v="${esc(c)}" aria-pressed="${on}">${on ? "✓ " : ""}${esc(c)} (${PROGRAMS.filter((p) => inPlace(p, c)).length})</button>`; }).join("");
     const btns = (key, opts) => opts.map((o) => `<button class="fbtn ${F[key] === o ? "on" : ""}" data-f="${key}" data-v="${esc(o)}">${esc(o)}</button>`).join("");
     let list = PROGRAMS.filter((p) => {
-      const sk = secOf(F.country);
-      if (sk) { if (p.sec !== sk && p.country !== F.country) return false; }
-      else if (F.country !== "All" && p.country !== F.country) return false;
+      if (F.countries.length && !F.countries.some((c) => inPlace(p, c))) return false;
       if (F.field !== "All" && !p.field.includes(F.field)) return false;
       if (F.money === "Stipend" && !p.stipend) return false;
       if (F.money === "No tuition" && !p.tuitionFree) return false;
@@ -392,14 +392,16 @@
     if (F.sort === "deadline") list.sort((a, b) => dkey(a).localeCompare(dkey(b)));
     if (F.sort === "world") list.sort((a, b) => (a.rank.sort || 9999) - (b.rank.sort || 9999));
     if (F.sort === "bring") list.sort((a, b) => calc(a).bring * (rates[a.cur] || 1) - calc(b).bring * (rates[b.cur] || 1));
-    const showNeeds = secOf(F.country) ? NEEDS_TEST.filter((r) => r.sec === secOf(F.country)) : [];
+    const secs = F.countries.map(secOf).filter(Boolean);
+    const showNeeds = NEEDS_TEST.filter((r) => secs.includes(r.sec));
+    const picked = [F.countries.join(" + "), F.engs.join(" + ")].filter(Boolean).join(" · ");
     return `
       <h1>All programs</h1>
-      <p class="lead">Choose a country or region, then narrow it down. Tap any program for every detail.</p>
+      <p class="lead">Tap one or more countries and one or more English options to combine them (for example Germany + Italy with MOI + IELTS). Tap again to remove. Tap any program for every detail.</p>
       ${searchBox("q", F.q, "Search programs: university, city, AI, data, statistics...")}
       <div class="filters">
         ${hasPhd() ? `<div class="frow"><label>Level</label><button class="fbtn on">Master's</button><a class="fbtn" href="#phd">Direct PhD (${PHD.length})</a></div>` : ""}
-        <div class="frow"><label>Country</label>${btns("country", countries)}</div>
+        <div class="frow"><label>Country</label>${ctyBtns}</div>
         <div class="frow"><label>Field</label>${btns("field", ["All", ...DS.fields])}</div>
         <div class="frow"><label>Money</label>${btns("money", ["All", "Stipend", "No tuition", "No blocked account"])}</div>
         <div class="frow"><label>English</label>${engBtns()}</div>
@@ -407,10 +409,10 @@
         ${PROGRAMS.some(startsSpring) ? `<div class="frow"><label>Start</label>${btns("start", ["All", SPRING])}</div>` : ""}
         <div class="frow"><label>Sort by</label>
           <select id="sort"><option value="rank" ${F.sort === "rank" ? "selected" : ""}>Best for me</option><option value="deadline" ${F.sort === "deadline" ? "selected" : ""}>Nearest deadline</option><option value="bring" ${F.sort === "bring" ? "selected" : ""}>Least money to bring</option><option value="world" ${F.sort === "world" ? "selected" : ""}>Best world ranking</option></select>
-          <span class="muted small" style="margin-left:6px">${list.length} program${list.length === 1 ? "" : "s"}</span></div>
+          <span class="muted small" style="margin-left:6px">${list.length} program${list.length === 1 ? "" : "s"}${picked ? " · " + esc(picked) : ""}</span>${F.countries.length || F.engs.length || F.q ? ' <button class="fbtn" data-fclear="allf">Clear filters</button>' : ""}</div>
       </div>
       ${list.length ? `<div class="grid">${list.map((p) => card(p, "rankAll")).join("")}</div>` : '<div class="empty">No program matches these filters.</div>'}
-      ${F.country === "Germany" && DE_EXCLUDED.length ? `<h2>Checked in Germany but not suitable</h2><div class="card"><table class="money">${DE_EXCLUDED.map((r) => `<tr><td><b>${esc(r[0])}</b></td><td style="text-align:left;font-weight:400">${esc(r[1])}</td></tr>`).join("")}</table></div>` : ""}
+      ${F.countries.includes("Germany") && DE_EXCLUDED.length ? `<h2>Checked in Germany but not suitable</h2><div class="card"><table class="money">${DE_EXCLUDED.map((r) => `<tr><td><b>${esc(r[0])}</b></td><td style="text-align:left;font-weight:400">${esc(r[1])}</td></tr>`).join("")}</table></div>` : ""}
       ${showNeeds.length ? `<h2>Funded, but needs an English test</h2>${needsTestTable(showNeeds)}` : ""}`;
   }
 
@@ -1022,7 +1024,7 @@ ${DS.moneyCards}
 
   let pendingPin = null;
   function enter(pid) {
-    profile = pid; raw.set("current", pid); loadRates(); useDataset(); pendingPin = null; Object.assign(F, { country: "All", field: "All", money: "All", eng: "All", apply: "All", start: "All", q: "" }); Object.assign(PF, { region: "All", eng: "All", checked: "All", track: "All", q: "" });
+    profile = pid; raw.set("current", pid); loadRates(); useDataset(); pendingPin = null; Object.assign(F, { countries: [], field: "All", money: "All", engs: [], apply: "All", start: "All", q: "" }); Object.assign(PF, { region: "All", eng: "All", checked: "All", track: "All", q: "" });
     if (location.hash !== "#home") location.hash = "#home"; render(); window.scrollTo(0, 0);
     pullNow();
   }
@@ -1111,6 +1113,10 @@ ${DS.moneyCards}
     if (md) { const [id, i] = md.dataset.missdel.split("|"); const list = store.get("miss_" + id, []); list.splice(+i, 1); store.set("miss_" + id, list); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const del = e.target.closest("[data-del]");
     if (del) { const list = store.get("custom", []); list.splice(+del.dataset.del, 1); store.set("custom", list); render(); return; }
+    const fm = e.target.closest("[data-fm]");
+    if (fm) { const k = fm.dataset.fm, v = fm.dataset.v; F[k] = F[k].includes(v) ? F[k].filter((x) => x !== v) : [...F[k], v]; if (location.hash.startsWith("#all/")) history.replaceState(null, "", "#all"); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
+    const fc = e.target.closest("[data-fclear]");
+    if (fc) { const k = fc.dataset.fclear; if (k === "allf") Object.assign(F, { countries: [], engs: [], q: "" }); else F[k] = []; if (location.hash.startsWith("#all/")) history.replaceState(null, "", "#all"); const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const b = e.target.closest("[data-f]");
     if (b) { F[b.dataset.f] = b.dataset.v; if (location.hash.startsWith("#all/")) { history.replaceState(null, "", "#all"); } render(); return; }
     if (e.target.id === "resetRates") { store.set("rates", {}); loadRates(); render(); return; }
