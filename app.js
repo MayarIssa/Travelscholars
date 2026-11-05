@@ -551,6 +551,52 @@
       <p class="small muted" style="margin-top:12px">Find more English-taught programs in Germany in the <a href="https://www2.daad.de/deutschland/studienangebote/international-programmes/en/" target="_blank" rel="noopener">DAAD International Programmes database ↗</a> and more scholarships in the <a href="https://www2.daad.de/deutschland/stipendium/datenbank/en/21148-scholarship-database/" target="_blank" rel="noopener">DAAD scholarship database ↗</a>. Always confirm amounts and dates on the official pages.</p>`;
   }
 
+
+  /* ---------- other opportunities: internships, summer schools, free training ---------- */
+  const OF = { type: "All" };
+  const hasOpps = () => typeof OPPS !== "undefined";
+  const oppsFor = () => OPPS.filter((o) => o.for === "all" || prof().data !== "aya");
+  function oppCard(o) {
+    const list = (a, ol) => `<${ol ? "ol" : "ul"} class="list-plain">${a.map((x) => `<li>${esc(x)}</li>`).join("")}</${ol ? "ol" : "ul"}>`;
+    const done = o.docs.filter((_, i) => store.get(`odoc_${o.id}_${i}`, false)).length;
+    return `<div class="card zuse" id="${o.id}">
+      <div class="app-head"><div><h3 style="margin:0">${o.flag} ${esc(o.name)}</h3><div class="muted small">${esc(o.where)}</div></div>
+        <select class="status-sel" data-status="${o.id}" data-rerender="1" aria-label="My status">${statusOpts(statusOf(o.id))}</select></div>
+      <div class="chips" style="margin:8px 0"><span class="chip plain">${esc(o.type)}</span><span class="chip good">${esc(o.cost)}</span>${o.checked ? '<span class="chip good">✓ Checked</span>' : '<span class="chip plain">Confirm on official page</span>'}</div>
+      <div class="mline good" style="margin:6px 0">💰 ${esc(o.money)}</div>
+      <p class="small"><b>Length:</b> ${esc(o.length)}</p>
+      <p class="small"><b>Who can apply:</b> ${esc(o.who)}</p>
+      <p class="small"><b>English:</b> ${esc(o.english)}</p>
+      <div class="note" style="margin:8px 0"><b>Your fit:</b> ${esc(o.fit)}</div>
+      <h4>Deadline</h4>
+      ${o.deadlines.map((d) => `<div class="small">⏰ ${esc(d.t)}${d.d && daysLeft(d.d) >= 0 ? ` <span class="muted">(${daysLeft(d.d)} days left)</span>` : ""}</div>`).join("")}
+      <h4>What you need <span class="muted small">(${done}/${o.docs.length} ready)</span></h4>
+      ${o.docs.map((d, i) => { const on = store.get(`odoc_${o.id}_${i}`, false); return `<label class="check ${on ? "done" : ""}"><input type="checkbox" data-k="odoc_${o.id}_${i}" ${on ? "checked" : ""}><span class="txt">${esc(d)}</span></label>`; }).join("")}
+      <h4>How to apply</h4>${list(o.how, true)}
+      <div class="phd-actions"><a class="fbtn on" href="${esc(o.link)}" target="_blank" rel="noopener">Official page ↗</a></div>
+    </div>`;
+  }
+  function pageMore() {
+    if (!hasOpps()) return '<div class="empty">Nothing here yet.</div>';
+    const all = oppsFor();
+    const types = OPP_TYPES.filter((t) => all.some((o) => o.type === t));
+    const l = all.filter((o) => OF.type === "All" || o.type === OF.type)
+      .sort((a, b) => { const k = (o) => { const d = o.deadlines.find((x) => x.d && daysLeft(x.d) >= 0); return d ? d.d : "9999"; }; return k(a).localeCompare(k(b)); });
+    const btn = (t, n) => `<button class="fbtn ${OF.type === t ? "on" : ""}" data-of="${esc(t)}">${esc(t)}${n != null ? ` (${n})` : ""}</button>`;
+    return `<h1>Internships and more</h1>
+      <p class="lead">Free or low cost things you can do besides a master's: paid research internships abroad, remote paid open source work, AI summer schools, free training in Egypt and short fellowships. Researched ${esc(OPPS_CHECKED)}.</p>
+      <div class="stats">
+        <div class="stat"><b>${all.length}</b><span>opportunities</span></div>
+        <div class="stat"><b>${all.filter((o) => /Free/.test(o.cost)).length}</b><span>completely free</span></div>
+        <div class="stat"><b>${all.filter((o) => o.type === "Paid internship abroad" || o.type === "Remote and paid").length}</b><span>pay you</span></div>
+        <div class="stat"><b>${all.filter((o) => statusOf(o.id) !== "Not started").length}</b><span>you are tracking</span></div>
+      </div>
+      <div class="filters"><div class="frow"><label>Type</label>${btn("All", all.length)}${types.map((t) => btn(t, all.filter((o) => o.type === t).length)).join("")}</div></div>
+      <div class="note">Plan for the next months: <b>now</b> ask two professors for recommendation letters (OIST, KAUST, MEXT all need them) · <b>January</b> Hansen (15 Jan) and the Outreachy window · <b>March</b> GSoC, M2L, EEML · <b>April</b> OIST (15 Apr), Indaba aid, MEXT at the Embassy.</div>
+      <div class="apps-grid">${l.map(oppCard).join("")}</div>
+      <p class="small muted">Dates marked "usually" follow last year's pattern. Always confirm on the official page before applying or paying.</p>`;
+  }
+
   function pageProgram(id) {
     const p = byId(id);
     if (!p) return '<div class="empty">Program not found. <a href="#all">Back to all programs</a></div>';
@@ -793,7 +839,8 @@
     const m = PROGRAMS.filter((p) => statusOf(p.id) !== "Not started").map((p) => ({ id: p.id, uni: p.uni, prog: p.prog, dl: nextDeadline(p) ? nextDeadline(p).t : "", kind: "Master's" }));
     const d = hasPhd() ? PHD.filter((x) => statusOf(x.id) !== "Not started").map((x) => ({ id: x.id, uni: x.uni, prog: x.prog, dl: x.deadline, kind: "PhD" })) : [];
     const z = hasZuse() ? ZUSE.filter((x) => statusOf(x.id) !== "Not started").map((x) => ({ id: x.id, uni: x.name, prog: "DAAD scholarship", dl: (x.deadlines.find((q) => q.d && daysLeft(q.d) >= 0) || x.deadlines[0]).t, kind: "Scholarship" })) : [];
-    return [...m, ...d, ...z];
+    const o = typeof OPPS !== "undefined" ? OPPS.filter((x) => statusOf(x.id) !== "Not started").map((x) => ({ id: x.id, uni: x.name, prog: x.type, dl: (x.deadlines.find((q) => q.d && daysLeft(q.d) >= 0) || x.deadlines[0]).t, kind: "Other" })) : [];
+    return [...m, ...d, ...z, ...o];
   }
   const REF_ST = ["Not asked", "Asked", "Agreed", "Submitted"];
   function refsCard() {
@@ -1029,6 +1076,7 @@ ${DS.moneyCards}
     else if (page === "apps") html = pageApps();
     else if (page === "phd") html = pagePhd(arg);
     else if (page === "daad") html = pageDaad();
+    else if (page === "more") html = pageMore();
     else if (page === "docs") { html = pageDocs(arg); tab = "docs"; }
     else if (page === "money") html = pageMoney();
     else if (page === "profile") html = pageSettings();
@@ -1115,6 +1163,7 @@ ${DS.moneyCards}
       downloadIcs(ev, "all-deadlines"); return;
     }
     const cq = e.target.closest("[data-clearq]"); if (cq) { (cq.dataset.clearq === "q" ? F : PF).q = ""; render(); return; }
+    const of = e.target.closest("[data-of]"); if (of) { OF.type = of.dataset.of; const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const pf = e.target.closest("[data-pf]"); if (pf) { PF[pf.dataset.pf] = pf.dataset.v; const y = window.scrollY; render(); window.scrollTo(0, y); return; }
     const pi = e.target.closest("[data-phdics]");
     if (pi) { const x = phdById(pi.dataset.phdics); if (x) downloadIcs([icsEvent({ id: x.id, uni: x.uni, prog: x.prog, link: x.link }, { d: x.d, t: "PhD deadline: " + x.deadline }, 0)], "deadline-" + x.id); return; }
